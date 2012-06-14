@@ -45,6 +45,7 @@ import com.notnoop.c2dm.C2DMDelegate;
 import com.notnoop.c2dm.C2DMNotification;
 import com.notnoop.c2dm.C2DMResponse;
 import com.notnoop.c2dm.exceptions.RuntimeIOException;
+import com.notnoop.c2dm.internal.AbstractC2DMService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -117,6 +118,9 @@ public final class Utilities {
             String newAuthToken = header.getValue();
             service.updateAuthToken(newAuthToken);
             delegate.authTokenUpdated(newAuthToken);
+        }
+        else if (response.getStatusLine().getStatusCode() == 401) {
+        	service.updateAuthToken(delegate.authTokenUpdateRequired());
         }
     }
 

@@ -71,4 +71,11 @@ public interface C2DMDelegate {
      * @param newAuthToken  the new authentication token
      */
     public void authTokenUpdated(String newAuthToken);
+
+    /**
+     * Delegate method called when Google servers update the Auth Token.
+     *
+     * @return newAuthToken  the new authentication token
+     */
+	public String authTokenUpdateRequired();
 }

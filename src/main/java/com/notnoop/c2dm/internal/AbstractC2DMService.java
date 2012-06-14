@@ -80,7 +80,7 @@ public abstract class AbstractC2DMService implements C2DMService {
 
     public void stop() {}
 
-    protected void updateAuthToken(String newAuthToken) {
+    public void updateAuthToken(String newAuthToken) {
         this.authToken.set(newAuthToken);
     }
 }
