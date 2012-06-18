@@ -31,6 +31,7 @@
 package com.notnoop.c2dm;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a builder for constructing the notifications requests, as
@@ -42,7 +43,7 @@ import java.util.HashMap;
 public class C2DMNotificationBuilder {
 	private String collapseKey;
 	private boolean delayWhileIdle;
-	private HashMap<String, String> data = new HashMap<String, String>();
+	private Map<String, String> data = new HashMap<String, String>();
 
 	public C2DMNotificationBuilder() {
 	}
@@ -112,5 +113,10 @@ public class C2DMNotificationBuilder {
 	public C2DMNotification build() {
 		checkInitialization();
 		return new C2DMNotificationImpl(collapseKey, delayWhileIdle, data);
+	}
+
+	public C2DMNotificationBuilder data(Map<String, String> dataMap) {
+		this.data = dataMap;
+		return this;
 	}
 }
