@@ -45,8 +45,8 @@ public class C2DMQueuedService extends AbstractC2DMService implements C2DMServic
     private BlockingQueue<Pair<HttpPost, C2DMNotification>> queue;
     private AtomicBoolean started = new AtomicBoolean(false);
 
-    public C2DMQueuedService(AbstractC2DMService service, String serviceUri, String authToken) {
-        super(serviceUri, authToken);
+    public C2DMQueuedService(AbstractC2DMService service, String serviceUri, String apiKey) {
+        super(serviceUri, apiKey);
         this.service = service;
         this.queue = new LinkedBlockingQueue<Pair<HttpPost, C2DMNotification>>();
     }

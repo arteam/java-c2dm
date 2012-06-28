@@ -59,7 +59,7 @@ public final class Utilities {
     /**
      * The default URL for Google C2DM push notifications
      */
-    public static String DEFAULT_C2DM_SERVICE_URI = "https://android.apis.google.com/c2dm/send";
+    public static String DEFAULT_C2DM_SERVICE_URI = "https://android.googleapis.com/gcm/send";
 
     public static ThreadSafeClientConnManager poolManager(int maxConnections) {
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager();
@@ -112,16 +112,6 @@ public final class Utilities {
             delegate.messageFailed(message, r);
         }
 
-        if (response.containsHeader(UPDATE_CLIENT_AUTH)) {
-            Header header = response.getFirstHeader(UPDATE_CLIENT_AUTH);
-
-            String newAuthToken = header.getValue();
-            service.updateAuthToken(newAuthToken);
-            delegate.authTokenUpdated(newAuthToken);
-        }
-        else if (response.getStatusLine().getStatusCode() == 401) {
-        	service.updateAuthToken(delegate.authTokenUpdateRequired());
-        }
     }
 
     private static final C2DMResponse[] logicalResponses = C2DMResponse.values();

@@ -61,7 +61,7 @@ import com.notnoop.c2dm.internal.*;
 public class C2DMServiceBuilder {
     private String serviceUri = Utilities.DEFAULT_C2DM_SERVICE_URI;
 
-    private String authToken;
+    private String apiKey;
 
     private int pooledMax = 1;
     private ExecutorService executor = null;
@@ -108,8 +108,8 @@ public class C2DMServiceBuilder {
         return this;
     }
 
-    public C2DMServiceBuilder withAuthToken(String authToken) {
-        this.authToken = authToken;
+    public C2DMServiceBuilder withApiKey(String apiKey) {
+        this.apiKey = apiKey;
         return this;
     }
 
@@ -223,13 +223,13 @@ public class C2DMServiceBuilder {
         // Configure service
         AbstractC2DMService service;
         if (pooledMax == 1) {
-            service = new C2DMServiceImpl(client, serviceUri, authToken, delegate);
+            service = new C2DMServiceImpl(client, serviceUri, apiKey, delegate);
         } else {
-            service = new C2DMPooledService(client, serviceUri, authToken, executor, delegate);
+            service = new C2DMPooledService(client, serviceUri, apiKey, executor, delegate);
         }
 
         if (isQueued) {
-            service = new C2DMQueuedService(service, serviceUri, authToken);
+            service = new C2DMQueuedService(service, serviceUri, apiKey);
         }
 
         service.start();
@@ -237,7 +237,7 @@ public class C2DMServiceBuilder {
     }
 
     private void checkInitialization() {
-        if (authToken == null) {
+        if (apiKey == null) {
             throw new IllegalStateException("AuthToken is required");
         }
         if (pooledMax != 1 && executor == null) {

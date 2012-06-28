@@ -55,27 +55,4 @@ public interface C2DMDelegate {
      */
     public void messageFailed(C2DMNotification message, C2DMResponse response);
 
-    /**
-     * Delegate method called when Google servers update the Auth Token.
-     *
-     * Google servers update the authentication code, and indicates the new
-     * value in special HTTP header "Update-Client-Auth".  Google C2DM servers
-     * may accept the stale value for a unspecified period of time allowing all
-     * clients to be update.
-     *
-     * This library maintains the authentication token automatically, so
-     * subclasses should only use this method for record keeping.  Subclasses
-     * should not override this method to update any {@link C2DMService} or
-     * recreate {@link C2DMService} instances.
-     *
-     * @param newAuthToken  the new authentication token
-     */
-    public void authTokenUpdated(String newAuthToken);
-
-    /**
-     * Delegate method called when Google servers update the Auth Token.
-     *
-     * @return newAuthToken  the new authentication token
-     */
-	public String authTokenUpdateRequired();
 }

@@ -47,8 +47,8 @@ public class C2DMPooledService extends AbstractC2DMService implements C2DMServic
     private final ExecutorService executor;
     private final C2DMDelegate delegate;
 
-    public C2DMPooledService(HttpClient httpClient, String serviceUri, String authToken, ExecutorService executor, C2DMDelegate delegate) {
-        super(serviceUri, authToken);
+    public C2DMPooledService(HttpClient httpClient, String serviceUri, String apiKey, ExecutorService executor, C2DMDelegate delegate) {
+        super(serviceUri, apiKey);
         this.httpClient = httpClient;
         this.executor = executor;
         this.delegate = delegate;

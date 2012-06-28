@@ -47,8 +47,8 @@ public class C2DMServiceImpl extends AbstractC2DMService implements C2DMService 
     private final HttpClient httpClient;
     private final C2DMDelegate delegate;
 
-    public C2DMServiceImpl(HttpClient httpClient, String serviceUri, String authToken, C2DMDelegate delegate) {
-        super(serviceUri, authToken);
+    public C2DMServiceImpl(HttpClient httpClient, String serviceUri, String apiKey, C2DMDelegate delegate) {
+        super(serviceUri, apiKey);
         this.httpClient = httpClient;
         this.delegate = delegate;
     }

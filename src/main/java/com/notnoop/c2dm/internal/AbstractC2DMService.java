@@ -42,11 +42,11 @@ import com.notnoop.c2dm.exceptions.NetworkIOException;
 
 public abstract class AbstractC2DMService implements C2DMService {
     private final String serviceUri;
-    private final AtomicReference<String> authToken;
+    private final AtomicReference<String> apiKey;
 
-    protected AbstractC2DMService(String serviceUri, String authToken) {
+    protected AbstractC2DMService(String serviceUri, String apiKey) {
         this.serviceUri = serviceUri;
-        this.authToken = new AtomicReference<String>(authToken);
+        this.apiKey = new AtomicReference<String>(apiKey);
     }
 
     protected HttpPost postMessage(String registrationId, C2DMNotification notification) {
@@ -59,7 +59,8 @@ public abstract class AbstractC2DMService implements C2DMService {
             throw new AssertionError("No UTF-8! It's Doom Day!");
         }
 
-        method.addHeader("Authorization", "GoogleLogin auth=" + authToken.get());
+        method.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+        method.addHeader("Authorization", "key=" + apiKey.get());
 
         return method;
     }
@@ -80,7 +81,4 @@ public abstract class AbstractC2DMService implements C2DMService {
 
     public void stop() {}
 
-    public void updateAuthToken(String newAuthToken) {
-        this.authToken.set(newAuthToken);
-    }
 }
