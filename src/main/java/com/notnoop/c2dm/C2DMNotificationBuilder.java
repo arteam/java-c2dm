@@ -40,95 +40,94 @@ import java.util.Map;
  * specified by <a
  * href="http://code.google.com/android/c2dm/index.html#server">Android Cloud to
  * Device Messaging Framework documentation</a>:
- * 
  */
 public class C2DMNotificationBuilder {
     private List<String> registrationIds;
-	private String collapseKey;
-	private boolean delayWhileIdle;
-	private Map<String, String> data = new HashMap<String, String>();
+    private String collapseKey;
+    private boolean delayWhileIdle;
+    private Map<String, Object> data = new HashMap<String, Object>();
 
-	public C2DMNotificationBuilder() {
-	}
+    public C2DMNotificationBuilder() {
+    }
 
     public C2DMNotificationBuilder registrationId(String registrationId) {
         this.registrationIds = Collections.singletonList(registrationId);
         return this;
     }
 
-    public C2DMNotificationBuilder setRegistrationIds(List<String> registrationIds) {
+    public C2DMNotificationBuilder registrationIds(List<String> registrationIds) {
         this.registrationIds = registrationIds;
         return this;
     }
 
     /**
-	 * Sets the collapse key for the notification.
-	 * 
-	 * An arbitrary string that is used to collapse a group of like messages
-	 * when the device is offline, so that only the last message gets sent to
-	 * the client. This is intended to avoid sending too many messages to the
-	 * phone when it comes back online. Note that since there is no guarantee of
-	 * the order in which messages get sent, the "last" message may not actually
-	 * be the last message sent by the application server.
-	 * 
-	 * The field is optional
-	 * 
-	 * @return this
-	 */
-	public C2DMNotificationBuilder collapseKey(String collapseKey) {
-		this.collapseKey = collapseKey;
-		return this;
-	}
+     * Sets the collapse key for the notification.
+     * <p/>
+     * An arbitrary string that is used to collapse a group of like messages
+     * when the device is offline, so that only the last message gets sent to
+     * the client. This is intended to avoid sending too many messages to the
+     * phone when it comes back online. Note that since there is no guarantee of
+     * the order in which messages get sent, the "last" message may not actually
+     * be the last message sent by the application server.
+     * <p/>
+     * The field is optional
+     *
+     * @return this
+     */
+    public C2DMNotificationBuilder collapseKey(String collapseKey) {
+        this.collapseKey = collapseKey;
+        return this;
+    }
 
-	/**
-	 * Sets the delay while idle flag for the message.
-	 * 
-	 * indicates that the message should not be sent immediately if the device
-	 * is idle. The server will wait for the device to become active, and then
-	 * only the last message for each collapse_key value will be sent.
-	 * 
-	 * Default value is false.
-	 * 
-	 * @return this
-	 */
-	public C2DMNotificationBuilder delayWhileIdle(boolean delayWhileIdle) {
-		this.delayWhileIdle = delayWhileIdle;
-		return this;
-	}
+    /**
+     * Sets the delay while idle flag for the message.
+     * <p/>
+     * indicates that the message should not be sent immediately if the device
+     * is idle. The server will wait for the device to become active, and then
+     * only the last message for each collapse_key value will be sent.
+     * <p/>
+     * Default value is false.
+     *
+     * @return this
+     */
+    public C2DMNotificationBuilder delayWhileIdle(boolean delayWhileIdle) {
+        this.delayWhileIdle = delayWhileIdle;
+        return this;
+    }
 
-	/**
-	 * Appends an application specific payload data entry.
-	 * 
-	 * Payload data, expressed as key-value pairs. If present, it will be
-	 * included in the Intent as application data, with the <key>. There is no
-	 * limit on the number of key/value pairs, though there is a limit on the
-	 * total size of the message.
-	 * 
-	 * This field is optional.
-	 * 
-	 * @return this
-	 */
-	public C2DMNotificationBuilder data(String name, String value) {
-		data.put(name, value);
-		return this;
-	}
+    /**
+     * Appends an application specific payload data entry.
+     * <p/>
+     * Payload data, expressed as key-value pairs. If present, it will be
+     * included in the Intent as application data, with the <key>. There is no
+     * limit on the number of key/value pairs, though there is a limit on the
+     * total size of the message.
+     * <p/>
+     * This field is optional.
+     *
+     * @return this
+     */
+    public C2DMNotificationBuilder key(String key, Object value) {
+        data.put(key, value);
+        return this;
+    }
 
-	private void checkInitialization() {
-		if (registrationIds == null) {
-			throw new IllegalStateException("Registration id is required and missing");
-		}
-	}
+    private void checkInitialization() {
+        if (registrationIds == null) {
+            throw new IllegalStateException("Registration id is required and missing");
+        }
+    }
 
-	/**
-	 * Returns a fully initialized notification object
-	 */
-	public C2DMNotification build() {
-		checkInitialization();
-		return new C2DMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
-	}
+    /**
+     * Returns a fully initialized notification object
+     */
+    public C2DMNotification build() {
+        checkInitialization();
+        return new C2DMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
+    }
 
-	public C2DMNotificationBuilder data(Map<String, String> dataMap) {
-		this.data = dataMap;
-		return this;
-	}
+    public C2DMNotificationBuilder data(Map<String, Object> dataMap) {
+        this.data = dataMap;
+        return this;
+    }
 }
