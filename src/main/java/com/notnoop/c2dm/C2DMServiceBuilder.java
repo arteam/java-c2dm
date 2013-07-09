@@ -34,6 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -75,7 +77,7 @@ public class C2DMServiceBuilder {
 
     private boolean isQueued = false;
     private HttpHost proxy = null;
-    private HttpClient httpClient = null;
+    private UsernamePasswordCredentials proxyAuth = null;
     private int timeout = -1;
 
     private C2DMDelegate delegate;
@@ -99,7 +101,13 @@ public class C2DMServiceBuilder {
      * @return this
      */
     public C2DMServiceBuilder withHttpProxy(String host, int port) {
-        this.proxy = new HttpHost(host, port);
+        proxy = new HttpHost(host, port);
+        return this;
+    }
+
+
+    public C2DMServiceBuilder withProxyAuth(String username, String password) {
+        proxyAuth = new UsernamePasswordCredentials(username, password);
         return this;
     }
 
@@ -118,20 +126,6 @@ public class C2DMServiceBuilder {
 
     public C2DMServiceBuilder withApiKey(String apiKey) {
         this.apiKey = apiKey;
-        return this;
-    }
-
-    /**
-     * Sets the HttpClient instance along with any configuration
-     * <p/>
-     * NOTE: This is an advanced option that should be probably be used as a
-     * last resort.
-     *
-     * @param httpClient the httpClient to be used
-     * @return this
-     */
-    public C2DMServiceBuilder withHttpClient(HttpClient httpClient) {
-        this.httpClient = httpClient;
         return this;
     }
 
@@ -191,10 +185,8 @@ public class C2DMServiceBuilder {
         checkInitialization();
 
         // Client Configuration
-        HttpClient client;
-        if (httpClient != null) {
-            client = httpClient;
-        } else if (pooledMax == 1) {
+        DefaultHttpClient client;
+        if (pooledMax == 1) {
             client = new DefaultHttpClient();
         } else {
             client = new DefaultHttpClient(poolManager(pooledMax));
@@ -202,6 +194,9 @@ public class C2DMServiceBuilder {
 
         if (proxy != null) {
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            if (proxyAuth != null) {
+                client.getCredentialsProvider().setCredentials(new AuthScope(proxy), proxyAuth);
+            }
         }
 
         if (timeout > 0) {

@@ -125,18 +125,18 @@
             <scope>compile</scope>
         </dependency>
 
-      <!--  <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
-        </dependency>
+        <!--  <dependency>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-api</artifactId>
+              <version>1.7.2</version>
+          </dependency>
 
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.0.9</version>
-            <scope>test</scope>
-        </dependency>-->
+          <dependency>
+              <groupId>ch.qos.logback</groupId>
+              <artifactId>logback-classic</artifactId>
+              <version>1.0.9</version>
+              <scope>test</scope>
+          </dependency>-->
 
         <dependency>
             <groupId>junit</groupId>
@@ -203,6 +203,13 @@
         <system>Github</system>
         <url>http://github.com/notnoop/java-c2dm/issues</url>
     </issueManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>iptv</id>
+            <url>http://192.168.52.42:8081/nexus/content/repositories/iptv</url>
+        </repository>
+    </distributionManagement>
 
     <developers>
         <developer>
