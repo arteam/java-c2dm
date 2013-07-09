@@ -54,18 +54,17 @@ public class C2DMServiceImpl extends AbstractC2DMService implements C2DMService 
     }
 
     @Override
-    protected void push(HttpPost request, C2DMNotification message) {
+    public void push(C2DMNotification message) {
         HttpResponse httpResponse = null;
         try {
-            httpResponse = httpClient.execute(request);
+            httpResponse = httpClient.execute(postMessage(message));
             if (delegate != null) {
                 C2DMResponse cResponse = responseParser.parse(httpResponse);
                 C2DMResponseStatus status = cResponse.getStatus();
                 if (status == C2DMResponseStatus.SUCCESSFUL) {
-                    String id = cResponse.getMessageId();
-                    delegate.messageSent(message, status, id);
+                    delegate.messageSent(message, cResponse);
                 } else {
-                    delegate.messageFailed(message, status);
+                    delegate.messageFailed(message, cResponse);
                 }
             }
         } catch (ClientProtocolException e) {

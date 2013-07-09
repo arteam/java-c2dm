@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -41,6 +42,7 @@ import org.apache.http.client.methods.HttpPost;
 import com.notnoop.c2dm.C2DMNotification;
 import com.notnoop.c2dm.C2DMService;
 import com.notnoop.c2dm.exceptions.NetworkIOException;
+import org.apache.http.entity.StringEntity;
 
 public abstract class AbstractC2DMService implements C2DMService {
     private final String serviceUri;
@@ -53,14 +55,15 @@ public abstract class AbstractC2DMService implements C2DMService {
         this.apiKey = new AtomicReference<String>(apiKey);
     }
 
-    protected HttpPost postMessage(String registrationId, C2DMNotification notification) {
+    protected HttpPost postMessage(C2DMNotification notification) {
         try {
             HttpPost method = new HttpPost(serviceUri);
-            List<NameValuePair> request = requestBuilder.build(registrationId, notification);
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(request, "UTF-8");
+            String jsonRequest = requestBuilder.build(notification);
+            HttpEntity entity = new StringEntity(jsonRequest, "UTF-8");
+
             method.setEntity(entity);
 
-            method.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+            method.addHeader("Content-Type", "application/json;charset=UTF-8");
             method.addHeader("Authorization", "key=" + apiKey.get());
             return method;
         } catch (UnsupportedEncodingException e) {
@@ -68,18 +71,9 @@ public abstract class AbstractC2DMService implements C2DMService {
         }
     }
 
-    protected abstract void push(HttpPost request, C2DMNotification message);
-
     @Override
-    public void push(String registrationId, String payload)
-            throws NetworkIOException {
+    public void push(String payload) {
         throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
-    public void push(String registrationId, C2DMNotification message)
-            throws NetworkIOException {
-        push(postMessage(registrationId, message), message);
     }
 
     @Override

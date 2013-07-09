@@ -1,11 +1,16 @@
 package com.notnoop.c2dm;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * Represents an C2DM notification to be sent to Google service.
  */
 public interface C2DMNotification {
+
+    public List<String> getRegistrationIds();
+
+
 	/**
 	 * Returns the collapse key of the current message. The key is used by the
 	 * C2DM to group messages when the device is offline. Only the last message

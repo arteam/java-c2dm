@@ -30,20 +30,23 @@
  */
 package com.notnoop.c2dm;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Represents an C2DM notification to be sent to Google service.
  */
 public class C2DMNotificationImpl implements C2DMNotification {
+    private final List<String> registrationIds;
     private final String collapseKey;
     private final boolean delayWhileIdle;
     private final Map<String, ?> data;
 
-    public C2DMNotificationImpl(String collapseKey,
+    public C2DMNotificationImpl(List<String> registrationIds,
+                                String collapseKey,
                                 boolean delayWhileIdle,
                                 Map<String, ?> data) {
+        this.registrationIds = registrationIds;
         this.collapseKey = collapseKey;
         this.delayWhileIdle = delayWhileIdle;
         this.data = data;
@@ -60,7 +63,12 @@ public class C2DMNotificationImpl implements C2DMNotification {
     }
 
     @Override
+    public List<String> getRegistrationIds() {
+        return registrationIds;
+    }
+
+    @Override
     public Map<String, ?> getData() {
-        return Collections.unmodifiableMap(data);
+        return data;
     }
 }

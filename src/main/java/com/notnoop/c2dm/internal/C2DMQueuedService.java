@@ -42,22 +42,22 @@ import com.notnoop.c2dm.C2DMService;
 public class C2DMQueuedService extends AbstractC2DMService implements C2DMService {
 
     private AbstractC2DMService service;
-    private BlockingQueue<Pair<HttpPost, C2DMNotification>> queue;
+    private BlockingQueue<C2DMNotification> queue;
     private AtomicBoolean started = new AtomicBoolean(false);
 
     public C2DMQueuedService(AbstractC2DMService service, String serviceUri, String apiKey) {
         super(serviceUri, apiKey);
         this.service = service;
-        this.queue = new LinkedBlockingQueue<Pair<HttpPost, C2DMNotification>>();
+        this.queue = new LinkedBlockingQueue<C2DMNotification>();
     }
 
     @Override
-    protected void push(final HttpPost request, C2DMNotification message) {
+    public void push(C2DMNotification message) {
         if (!started.get()) {
             throw new IllegalStateException("Service hasn't been started or was closed");
         }
 
-        queue.add(Pair.of(request, message));
+        queue.add(message);
     }
 
     private Thread thread;
@@ -77,8 +77,7 @@ public class C2DMQueuedService extends AbstractC2DMService implements C2DMServic
             public void run() {
                 while (shouldContinue) {
                     try {
-                        Pair<HttpPost, C2DMNotification> post = queue.take();
-                        service.push(post.getKey(), post.getValue());
+                        service.push(queue.take());
                     } catch (InterruptedException e) {
                         return;
                     }

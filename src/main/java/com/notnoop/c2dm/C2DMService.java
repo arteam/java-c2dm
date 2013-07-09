@@ -52,13 +52,11 @@ public interface C2DMService {
      * silently.  It is recommended to use {@link PayloadBuilder} to create
      * one.
      *
-     * @param registrationId   the destination iPhone device token
      * @param payload       The payload message
      * @throws NetworkIOException if a network error occured while
      *      attempting to send the message
      */
-    void push(String registrationId, String payload)
-        throws NetworkIOException;
+    void push(String payload);
 
     /**
      * Sends the provided notification {@code message} to the desired
@@ -66,8 +64,7 @@ public interface C2DMService {
      * @throws NetworkIOException if a network error occured while
      *      attempting to send the message
      */
-    void push(String registrationId, C2DMNotification message)
-        throws NetworkIOException;
+    void push(C2DMNotification message);
 
     /**
      * Starts the service.

@@ -30,33 +30,14 @@
 */
 package com.notnoop.c2dm.internal;
 
+import com.google.gson.Gson;
 import com.notnoop.c2dm.C2DMNotification;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class RequestBuilder {
 
-    /**
-     * The default URL for Google C2DM push notifications
-     */
-    public List<NameValuePair> build(String registrationId, C2DMNotification notify) {
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    private Gson gson = new Gson();
 
-        pairs.add(new BasicNameValuePair("registration_id", registrationId));
-        pairs.add(new BasicNameValuePair("collapse_key", notify.getCollapseKey()));
-
-        if (notify.isDelayWhileIdle()) {
-            pairs.add(new BasicNameValuePair("delay_while_idle", "1"));
-        }
-
-        for (Map.Entry<String, ?> data : notify.getData().entrySet()) {
-            pairs.add(new BasicNameValuePair("data." + data.getKey(), data.getValue().toString()));
-        }
-
-        return pairs;
+    public String build(C2DMNotification notify) {
+        return gson.toJson(notify);
     }
 }

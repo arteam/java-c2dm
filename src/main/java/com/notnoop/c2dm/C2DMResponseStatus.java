@@ -78,6 +78,8 @@ public enum C2DMResponseStatus {
 
     INVALID_AUTHENTICATION(null, false),
 
+    INVALID_REQUEST("Invalid request", false),
+
     UNKNOWN_ERROR(null, false);
 
     private final String key;

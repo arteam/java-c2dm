@@ -1,20 +1,14 @@
 package com.notnoop.c2dm.internal;
 
-import com.notnoop.c2dm.C2DMDelegate;
-import com.notnoop.c2dm.C2DMNotification;
+import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
 import com.notnoop.c2dm.C2DMResponse;
 import com.notnoop.c2dm.C2DMResponseStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
 /**
  * Date: 09.07.13
@@ -22,41 +16,44 @@ import java.util.Scanner;
  */
 public class ResponseParser {
 
-    public C2DMResponse parse(HttpResponse response) {
-        List<NameValuePair> pairs;
-        try {
-            pairs = toPairs(response.getEntity());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    private Gson gson = new Gson();
 
-        C2DMResponseStatus status = getStatus(response, pairs);
-        if (!pairs.isEmpty()) {
-            String messageId = pairs.get(0).getValue();
-            return new C2DMResponse(status, messageId);
-        } else {
-            return new C2DMResponse(status);
-        }
+    @SuppressWarnings("unchecked")
+    public C2DMResponse parse(HttpResponse httpResponse) {
+        StringMap jResponse = toResponse(httpResponse.getEntity());
+
+        C2DMResponseStatus status = getStatus(httpResponse, jResponse);
+        long multicastId = Long.parseLong(jResponse.get("multicast_id").toString());
+        int success = (Integer) jResponse.get("success");
+        int failure = (Integer) jResponse.get("failure");
+        int canonicalIds = (Integer) jResponse.get("canonical_ids");
+        StringMap<String> results = (StringMap<String>) jResponse.get("results");
+        return new C2DMResponse(multicastId, success, failure, canonicalIds, results, status);
     }
 
 
-    public C2DMResponseStatus getStatus(HttpResponse response, List<NameValuePair> pairs) {
-        int statusCode = response.getStatusLine().getStatusCode();
+    public C2DMResponseStatus getStatus(HttpResponse httpResponse, StringMap jsonResponse) {
+        int statusCode = httpResponse.getStatusLine().getStatusCode();
         switch (statusCode) {
             case 503:
                 return C2DMResponseStatus.SERVER_UNAVAILABLE;
+            case 400:
+                return C2DMResponseStatus.INVALID_REQUEST;
             case 401:
                 return C2DMResponseStatus.INVALID_AUTHENTICATION;
             case 200: {
-                assert pairs.size() == 1;
-
-                NameValuePair entry = pairs.get(0);
-                if ("id".equals(entry.getName())) {
+                StringMap result = (StringMap) jsonResponse.get("result");
+                if (result.containsKey("message_id")) {
                     return C2DMResponseStatus.SUCCESSFUL;
                 }
-
-                assert "Error".equals(entry.getName());
-                return C2DMResponseStatus.of(entry.getValue());
+                if (result.containsKey("registration_id")) {
+                    return C2DMResponseStatus.INVALID_REGISTRATION;
+                }
+                if (result.containsKey("error")) {
+                    String error = (String) result.get("error");
+                    return C2DMResponseStatus.of(error);
+                }
+                return C2DMResponseStatus.UNKNOWN_ERROR;
             }
             default:
                 return C2DMResponseStatus.UNKNOWN_ERROR;
@@ -64,18 +61,21 @@ public class ResponseParser {
     }
 
     /**
-     * Workaround Google responding with Content-Type being
-     * "text/plain" rather than "application/x-www-form-urlencoded"
-     * as expected by Apache HTTP.
+     * {"multicast_id": 108,
+     * "success": 1,
+     * "failure": 0,
+     * "canonical_ids": 0,
+     * "results": [
+     * { "message_id": "1:08" }
+     * ]}
      */
-    private List<NameValuePair> toPairs(HttpEntity entity) throws ParseException, IOException {
-        String charset = "UTF-8";
-        String content = EntityUtils.toString(entity, charset);
-        List<NameValuePair> result = new ArrayList<NameValuePair>();
-        if (content != null && content.length() > 0) {
-            result = new ArrayList<NameValuePair>();
-            URLEncodedUtils.parse(result, new Scanner(content), charset);
+    private StringMap toResponse(HttpEntity entity) {
+        try {
+            String charset = "UTF-8";
+            String content = EntityUtils.toString(entity, charset);
+            return gson.fromJson(content, StringMap.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return result;
     }
 }

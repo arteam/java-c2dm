@@ -30,7 +30,9 @@
  */
 package com.notnoop.c2dm;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +43,7 @@ import java.util.Map;
  * 
  */
 public class C2DMNotificationBuilder {
+    private List<String> registrationIds;
 	private String collapseKey;
 	private boolean delayWhileIdle;
 	private Map<String, String> data = new HashMap<String, String>();
@@ -48,7 +51,17 @@ public class C2DMNotificationBuilder {
 	public C2DMNotificationBuilder() {
 	}
 
-	/**
+    public C2DMNotificationBuilder registrationId(String registrationId) {
+        this.registrationIds = Collections.singletonList(registrationId);
+        return this;
+    }
+
+    public C2DMNotificationBuilder setRegistrationIds(List<String> registrationIds) {
+        this.registrationIds = registrationIds;
+        return this;
+    }
+
+    /**
 	 * Sets the collapse key for the notification.
 	 * 
 	 * An arbitrary string that is used to collapse a group of like messages
@@ -58,7 +71,7 @@ public class C2DMNotificationBuilder {
 	 * the order in which messages get sent, the "last" message may not actually
 	 * be the last message sent by the application server.
 	 * 
-	 * The field is required
+	 * The field is optional
 	 * 
 	 * @return this
 	 */
@@ -101,9 +114,8 @@ public class C2DMNotificationBuilder {
 	}
 
 	private void checkInitialization() {
-		if (collapseKey == null) {
-			throw new IllegalStateException(
-					"Collapse Key is required and missing");
+		if (registrationIds == null) {
+			throw new IllegalStateException("Registration id is required and missing");
 		}
 	}
 
@@ -112,7 +124,7 @@ public class C2DMNotificationBuilder {
 	 */
 	public C2DMNotification build() {
 		checkInitialization();
-		return new C2DMNotificationImpl(collapseKey, delayWhileIdle, data);
+		return new C2DMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
 	}
 
 	public C2DMNotificationBuilder data(Map<String, String> dataMap) {
