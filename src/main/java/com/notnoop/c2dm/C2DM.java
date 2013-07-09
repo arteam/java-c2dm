@@ -33,7 +33,7 @@ package com.notnoop.c2dm;
 /**
  * The main class to interact with the C2DM Service.
  *
- * Provides an interface to create the {@link ApnsServiceBuilder} and
+ * Provides an interface to create the {@link C2DMServiceBuilder} and
  * {@code ApnsNotification} payload.
  *
  */

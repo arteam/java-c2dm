@@ -40,24 +40,27 @@ public class C2DMNotificationImpl implements C2DMNotification {
     private final String collapseKey;
     private final boolean delayWhileIdle;
     private final Map<String, ?> data;
-    
+
     public C2DMNotificationImpl(String collapseKey,
-            boolean delayWhileIdle,
-            Map<String, ?> data) {
+                                boolean delayWhileIdle,
+                                Map<String, ?> data) {
         this.collapseKey = collapseKey;
         this.delayWhileIdle = delayWhileIdle;
         this.data = data;
     }
 
+    @Override
     public String getCollapseKey() {
         return collapseKey;
     }
 
+    @Override
     public boolean isDelayWhileIdle() {
         return delayWhileIdle;
     }
-    
+
+    @Override
     public Map<String, ?> getData() {
-    	return Collections.unmodifiableMap(data);
+        return Collections.unmodifiableMap(data);
     }
 }

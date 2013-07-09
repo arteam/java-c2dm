@@ -54,7 +54,7 @@ public class C2DMQueuedService extends AbstractC2DMService implements C2DMServic
     @Override
     protected void push(final HttpPost request, C2DMNotification message) {
         if (!started.get()) {
-            throw new IllegalStateException("Service hans't been started or was closed");
+            throw new IllegalStateException("Service hasn't been started or was closed");
         }
 
         queue.add(Pair.of(request, message));
@@ -63,6 +63,7 @@ public class C2DMQueuedService extends AbstractC2DMService implements C2DMServic
     private Thread thread;
     private volatile boolean shouldContinue;
 
+    @Override
     public void start() {
         if (started.getAndSet(true)) {
             // Should we throw a runtime IllegalStateException here?
@@ -72,12 +73,15 @@ public class C2DMQueuedService extends AbstractC2DMService implements C2DMServic
         service.start();
         shouldContinue = true;
         thread = new Thread() {
+            @Override
             public void run() {
                 while (shouldContinue) {
                     try {
                         Pair<HttpPost, C2DMNotification> post = queue.take();
                         service.push(post.getKey(), post.getValue());
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+                        return;
+                    }
                 }
             }
         };

@@ -40,7 +40,7 @@ public interface C2DMDelegate {
      * @param response  the response Google sent
      * @param id    the id assigned to the message by Google servers
      */
-    public void messageSent(C2DMNotification message, C2DMResponse response, String id);
+    public void messageSent(C2DMNotification message, C2DMResponseStatus response, String id);
 
     /**
      * Delegate method called when the C2DM server rejects or drops a message.
@@ -53,6 +53,6 @@ public interface C2DMDelegate {
      *              {@link C2DMNotification} object)
      * @param response  the response Google sent
      */
-    public void messageFailed(C2DMNotification message, C2DMResponse response);
+    public void messageFailed(C2DMNotification message, C2DMResponseStatus response);
 
 }

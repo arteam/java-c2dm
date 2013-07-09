@@ -35,23 +35,28 @@ import java.util.concurrent.Executors;
 
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 
 import com.notnoop.c2dm.internal.*;
 
 /**
  * The class is used to create instances of {@link C2DMService}.
- *
+ * <p/>
  * Note that this class is not synchronized.  If multiple threads access a
  * {@code C2DMServiceBuilder} instance concurrently, and at least on of the
  * threads modifies one of the attributes structurally, it must be
  * synchronized externally.
- *
+ * <p/>
  * Starting a new {@code C2DMService} is easy:
- *
+ * <p/>
  * <pre>
  *   C2DMService service = C2DM.newService()
  *                  .authToken("authtoken")
@@ -59,7 +64,9 @@ import com.notnoop.c2dm.internal.*;
  * </pre>
  */
 public class C2DMServiceBuilder {
-    private String serviceUri = Utilities.DEFAULT_C2DM_SERVICE_URI;
+    public static String DEFAULT_C2DM_SERVICE_URI = "https://android.googleapis.com/gcm/send";
+
+    private String serviceUri = DEFAULT_C2DM_SERVICE_URI;
 
     private String apiKey;
 
@@ -76,19 +83,20 @@ public class C2DMServiceBuilder {
     /**
      * Constructs a new instance of {@code C2DMServiceBuilder}
      */
-    public C2DMServiceBuilder() { }
+    C2DMServiceBuilder() {
+    }
 
     /**
      * Specify the address of the HTTP proxy the connection should
      * use.
-     *
+     * <p/>
      * <p>Read the <a href="http://java.sun.com/javase/6/docs/technotes/guides/net/proxies.html">
      * Java Networking and Proxies</a> guide to understand the
      * proxies complexity.
      *
-     * @param host  the hostname of the HTTP proxy
-     * @param port  the port of the HTTP proxy server
-     * @return  this
+     * @param host the hostname of the HTTP proxy
+     * @param port the port of the HTTP proxy server
+     * @return this
      */
     public C2DMServiceBuilder withHttpProxy(String host, int port) {
         this.proxy = new HttpHost(host, port);
@@ -97,7 +105,7 @@ public class C2DMServiceBuilder {
 
     /**
      * Specify the service URI to post Google C2DM request to.
-     *
+     * <p/>
      * This method should be used only for testing.  By default, the
      * notifications are posted to
      * {@linkplain https://android.apis.google.com/c2dm/send}, as specified
@@ -113,30 +121,13 @@ public class C2DMServiceBuilder {
         return this;
     }
 
-    // TODO: Support Proxy again
-//    /**
-//     * Specify the proxy to be used to establish the connections
-//     * to Google Servers
-//     *
-//     * <p>Read the <a href="http://java.sun.com/javase/6/docs/technotes/guides/net/proxies.html">
-//     * Java Networking and Proxies</a> guide to understand the
-//     * proxies complexity.
-//     *
-//     * @param proxy the proxy object to be used to create connections
-//     * @return  this
-//     */
-//    public C2DMServiceBuilder withProxy(Proxy proxy) {
-//        this.proxy = proxy;
-//        return this;
-//    }
-
     /**
      * Sets the HttpClient instance along with any configuration
-     *
+     * <p/>
      * NOTE: This is an advanced option that should be probably be used as a
      * last resort.
      *
-     * @param httpClient    the httpClient to be used
+     * @param httpClient the httpClient to be used
      * @return this
      */
     public C2DMServiceBuilder withHttpClient(HttpClient httpClient) {
@@ -146,7 +137,6 @@ public class C2DMServiceBuilder {
 
     /**
      * Constructs a pool of connections to the notification servers.
-     *
      */
     public C2DMServiceBuilder asPool(int maxConnections) {
         return asPool(Executors.newFixedThreadPool(maxConnections), maxConnections);
@@ -154,7 +144,7 @@ public class C2DMServiceBuilder {
 
     /**
      * Constructs a pool of connections to the notification servers.
-     *
+     * <p/>
      * Note: The maxConnections here is used as a hint to how many connections
      * get created.
      */
@@ -168,7 +158,7 @@ public class C2DMServiceBuilder {
      * Constructs a new thread with a processing queue to process
      * notification requests.
      *
-     * @return  this
+     * @return this
      */
     public C2DMServiceBuilder asQueued() {
         this.isQueued = true;
@@ -178,7 +168,7 @@ public class C2DMServiceBuilder {
     /**
      * Sets the timeout for the connection
      *
-     * @param   timeout     the time out period in millis
+     * @param timeout the time out period in millis
      * @return this
      */
     public C2DMServiceBuilder withTimeout(int timeout) {
@@ -195,7 +185,7 @@ public class C2DMServiceBuilder {
      * Returns a fully initialized instance of {@link C2DMService},
      * according to the requested settings.
      *
-     * @return  a new instance of C2DMService
+     * @return a new instance of C2DMService
      */
     public C2DMService build() {
         checkInitialization();
@@ -207,7 +197,7 @@ public class C2DMServiceBuilder {
         } else if (pooledMax == 1) {
             client = new DefaultHttpClient();
         } else {
-            client = new DefaultHttpClient(Utilities.poolManager(pooledMax));
+            client = new DefaultHttpClient(poolManager(pooledMax));
         }
 
         if (proxy != null) {
@@ -216,8 +206,8 @@ public class C2DMServiceBuilder {
 
         if (timeout > 0) {
             HttpParams params = client.getParams();
-            HttpConnectionParams.setConnectionTimeout(params, timeout);
-            HttpConnectionParams.setSoTimeout(params, timeout);
+            params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
+            params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
         }
 
         // Configure service
@@ -243,5 +233,14 @@ public class C2DMServiceBuilder {
         if (pooledMax != 1 && executor == null) {
             throw new IllegalStateException("Executor service is required for pooled connections");
         }
+    }
+
+
+    private ClientConnectionManager poolManager(int maxConnections) {
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
+        cm.setMaxTotal(maxConnections);
+        return cm;
     }
 }

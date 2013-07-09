@@ -52,7 +52,7 @@ public interface C2DMService {
      * silently.  It is recommended to use {@link PayloadBuilder} to create
      * one.
      *
-     * @param deviceToken   the destination iPhone device token
+     * @param registrationId   the destination iPhone device token
      * @param payload       The payload message
      * @throws NetworkIOException if a network error occured while
      *      attempting to send the message

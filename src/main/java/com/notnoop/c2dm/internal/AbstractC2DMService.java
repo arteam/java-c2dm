@@ -31,8 +31,10 @@
 package com.notnoop.c2dm.internal;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 
@@ -44,41 +46,47 @@ public abstract class AbstractC2DMService implements C2DMService {
     private final String serviceUri;
     private final AtomicReference<String> apiKey;
 
+    private final RequestBuilder requestBuilder = new RequestBuilder();
+
     protected AbstractC2DMService(String serviceUri, String apiKey) {
         this.serviceUri = serviceUri;
         this.apiKey = new AtomicReference<String>(apiKey);
     }
 
     protected HttpPost postMessage(String registrationId, C2DMNotification notification) {
-        HttpPost method = new HttpPost(serviceUri);
         try {
-            method.setEntity(new UrlEncodedFormEntity(
-                    Utilities.requestBodyOf(registrationId, notification),
-                    "UTF-8"));
+            HttpPost method = new HttpPost(serviceUri);
+            List<NameValuePair> request = requestBuilder.build(registrationId, notification);
+            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(request, "UTF-8");
+            method.setEntity(entity);
+
+            method.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+            method.addHeader("Authorization", "key=" + apiKey.get());
+            return method;
         } catch (UnsupportedEncodingException e) {
-            throw new AssertionError("No UTF-8! It's Doom Day!");
+            throw new RuntimeException(e);
         }
-
-        method.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-        method.addHeader("Authorization", "key=" + apiKey.get());
-
-        return method;
     }
 
     protected abstract void push(HttpPost request, C2DMNotification message);
 
+    @Override
     public void push(String registrationId, String payload)
             throws NetworkIOException {
         throw new RuntimeException("Not implemented yet");
     }
 
+    @Override
     public void push(String registrationId, C2DMNotification message)
             throws NetworkIOException {
-        this.push(postMessage(registrationId, message), message);
+        push(postMessage(registrationId, message), message);
     }
 
-    public void start() {}
+    @Override
+    public void start() {
+    }
 
-    public void stop() {}
-
+    @Override
+    public void stop() {
+    }
 }

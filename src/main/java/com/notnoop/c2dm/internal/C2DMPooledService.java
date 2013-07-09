@@ -30,22 +30,23 @@
  */
 package com.notnoop.c2dm.internal;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.notnoop.c2dm.*;
+import com.notnoop.c2dm.exceptions.NetworkIOException;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.EntityUtils;
-
-import com.notnoop.c2dm.C2DMDelegate;
-import com.notnoop.c2dm.C2DMNotification;
-import com.notnoop.c2dm.C2DMService;
 
 public class C2DMPooledService extends AbstractC2DMService implements C2DMService {
     private final HttpClient httpClient;
     private final ExecutorService executor;
     private final C2DMDelegate delegate;
+    private final ResponseParser responseParser = new ResponseParser();
 
     public C2DMPooledService(HttpClient httpClient, String serviceUri, String apiKey, ExecutorService executor, C2DMDelegate delegate) {
         super(serviceUri, apiKey);
@@ -58,12 +59,29 @@ public class C2DMPooledService extends AbstractC2DMService implements C2DMServic
     protected void push(final HttpPost request, final C2DMNotification message) {
         executor.execute(new Runnable() {
             public void run() {
+                HttpResponse httpResponse = null;
                 try {
-                    HttpResponse response = httpClient.execute(request);
-                    Utilities.fireDelegate(message, response, delegate, C2DMPooledService.this);
-                    EntityUtils.consume(response.getEntity());
-                } catch (Exception e) {
+                    httpResponse = httpClient.execute(request);
+                    if (delegate != null) {
+                        C2DMResponse cResponse = responseParser.parse(httpResponse);
+                        C2DMResponseStatus status = cResponse.getStatus();
+                        if (status == C2DMResponseStatus.SUCCESSFUL) {
+                            String id = cResponse.getMessageId();
+                            delegate.messageSent(message, status, id);
+                        } else {
+                            delegate.messageFailed(message, status);
+                        }
+                    }
+                } catch (ClientProtocolException e) {
                     throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new NetworkIOException(e);
+                } finally {
+                    try {
+                        if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
+                    } catch (IOException e) {
+                        System.err.println("Unable close response " + e);
+                    }
                 }
             }
         });
@@ -71,16 +89,15 @@ public class C2DMPooledService extends AbstractC2DMService implements C2DMServic
 
     @Override
     public void stop() {
-        super.stop();
-        this.executor.shutdown();
+        executor.shutdown();
         try {
-            if(!this.executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                this.executor.shutdownNow();
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
             }
         } catch (InterruptedException e) {
         }
 
-        this.httpClient.getConnectionManager().shutdown();
+       httpClient.getConnectionManager().shutdown();
     }
 
 }

@@ -32,20 +32,20 @@ package com.notnoop.c2dm.internal;
 
 import java.io.IOException;
 
+import com.notnoop.c2dm.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.EntityUtils;
 
-import com.notnoop.c2dm.C2DMDelegate;
-import com.notnoop.c2dm.C2DMNotification;
-import com.notnoop.c2dm.C2DMService;
 import com.notnoop.c2dm.exceptions.NetworkIOException;
 
 public class C2DMServiceImpl extends AbstractC2DMService implements C2DMService {
     private final HttpClient httpClient;
     private final C2DMDelegate delegate;
+
+    private final ResponseParser responseParser = new ResponseParser();
 
     public C2DMServiceImpl(HttpClient httpClient, String serviceUri, String apiKey, C2DMDelegate delegate) {
         super(serviceUri, apiKey);
@@ -55,19 +55,35 @@ public class C2DMServiceImpl extends AbstractC2DMService implements C2DMService 
 
     @Override
     protected void push(HttpPost request, C2DMNotification message) {
+        HttpResponse httpResponse = null;
         try {
-            HttpResponse response = httpClient.execute(request);
-            Utilities.fireDelegate(message, response, delegate, this);
-            EntityUtils.consume(response.getEntity());
+            httpResponse = httpClient.execute(request);
+            if (delegate != null) {
+                C2DMResponse cResponse = responseParser.parse(httpResponse);
+                C2DMResponseStatus status = cResponse.getStatus();
+                if (status == C2DMResponseStatus.SUCCESSFUL) {
+                    String id = cResponse.getMessageId();
+                    delegate.messageSent(message, status, id);
+                } else {
+                    delegate.messageFailed(message, status);
+                }
+            }
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new NetworkIOException(e);
+        } finally {
+            try {
+                if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
+            } catch (IOException e) {
+                System.err.println("Unable close response " + e);
+            }
         }
     }
 
+    @Override
     public void stop() {
-        this.httpClient.getConnectionManager().shutdown();
+        httpClient.getConnectionManager().shutdown();
     }
 
 }
