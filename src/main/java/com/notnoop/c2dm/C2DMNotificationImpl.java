@@ -71,4 +71,14 @@ public class C2DMNotificationImpl implements C2DMNotification {
     public Map<String, ?> getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "C2DMNotification{" +
+                "registrationIds=" + registrationIds +
+                ", collapseKey='" + collapseKey + '\'' +
+                ", delayWhileIdle=" + delayWhileIdle +
+                ", data=" + data +
+                '}';
+    }
 }

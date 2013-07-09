@@ -48,4 +48,16 @@ public class C2DMResponse {
     public C2DMResponseStatus getStatus() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return "C2DMResponse{" +
+                "multicastId=" + multicastId +
+                ", success=" + success +
+                ", failure=" + failure +
+                ", canonicalIds=" + canonicalIds +
+                ", results=" + results +
+                ", status=" + status +
+                '}';
+    }
 }
