@@ -33,20 +33,20 @@ package com.notnoop.c2dm;
 import com.notnoop.c2dm.exceptions.NetworkIOException;
 
 /**
- * Represents the connection and interface to the Google C2DM servers.
+ * Represents the connection and interface to the Google GCM servers.
  *
- * The service is created by {@link C2DMServiceBuilder} like:
+ * The service is created by {@link GCMServiceBuilder} like:
  *
  * <pre>
- *   C2DMService service = C2DM.newService()
+ *   GCMService service = GCM.newService()
  *                  .build()
  * </pre>
  */
-public interface C2DMService {
+public interface GCMService {
 
     /**
      * Sends a push notification with the provided {@code payload} to the
-     * iPhone of {@code deviceToken}.
+     * Android of {@code deviceToken}.
      *
      * The payload needs to be a valid JSON object, otherwise it may fail
      * silently.  It is recommended to use {@link PayloadBuilder} to create
@@ -64,7 +64,7 @@ public interface C2DMService {
      * @throws NetworkIOException if a network error occured while
      *      attempting to send the message
      */
-    void push(C2DMNotification message);
+    void push(GCMNotification message);
 
     /**
      * Starts the service.

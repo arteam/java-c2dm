@@ -40,7 +40,7 @@ import java.io.IOException;
  *
  * This is a RuntimeException, unlike the java.io.IOException
  */
-public class RuntimeIOException extends C2DMException {
+public class RuntimeIOException extends GCMException {
     private static final long serialVersionUID = 8665285084049041306L;
 
     public RuntimeIOException()                      { super(); }

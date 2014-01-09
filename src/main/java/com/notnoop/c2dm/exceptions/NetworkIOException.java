@@ -38,7 +38,7 @@ import java.io.IOException;
  * (e.g. connectivity problems, domain cannot be found, network
  * dropped).
  */
-public class NetworkIOException extends C2DMException {
+public class NetworkIOException extends GCMException {
     private static final long serialVersionUID = 3353516625486306533L;
 
     public NetworkIOException()                      { super(); }

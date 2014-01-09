@@ -6,17 +6,17 @@ import com.google.gson.internal.StringMap;
  * Date: 09.07.13
  * Time: 15:33
  */
-public class C2DMResponse {
+public class GCMResponse {
 
     private long multicastId;
     private int success;
     private int failure;
     private int canonicalIds;
     private StringMap<String> results;
-    private C2DMResponseStatus status;
+    private GCMResponseStatus status;
 
-    public C2DMResponse(long multicastId, int success, int failure, int canonicalIds,
-                        StringMap<String> results, C2DMResponseStatus status) {
+    public GCMResponse(long multicastId, int success, int failure, int canonicalIds,
+                       StringMap<String> results, GCMResponseStatus status) {
         this.multicastId = multicastId;
         this.success = success;
         this.failure = failure;
@@ -45,13 +45,13 @@ public class C2DMResponse {
         return results;
     }
 
-    public C2DMResponseStatus getStatus() {
+    public GCMResponseStatus getStatus() {
         return status;
     }
 
     @Override
     public String toString() {
-        return "C2DMResponse{" +
+        return "GCMResponse{" +
                 "multicastId=" + multicastId +
                 ", success=" + success +
                 ", failure=" + failure +

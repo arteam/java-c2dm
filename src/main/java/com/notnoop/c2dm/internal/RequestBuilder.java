@@ -31,13 +31,13 @@
 package com.notnoop.c2dm.internal;
 
 import com.google.gson.Gson;
-import com.notnoop.c2dm.C2DMNotification;
+import com.notnoop.c2dm.GCMNotification;
 
 public class RequestBuilder {
 
     private Gson gson = new Gson();
 
-    public String build(C2DMNotification notify) {
+    public String build(GCMNotification notify) {
         return gson.toJson(notify);
     }
 }

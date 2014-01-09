@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Mahmood Ali.
+ * Copyright 2010, Mahmood Ali.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.notnoop.c2dm;
 
-import java.util.List;
-import java.util.Map;
+package com.notnoop.c2dm.exceptions;
 
 /**
- * Represents an C2DM notification to be sent to Google service.
+ * Base class for all the exceptions thrown in GCM Library
  */
-public class C2DMNotificationImpl implements C2DMNotification {
-    private final List<String> registrationIds;
-    private final String collapseKey;
-    private final boolean delayWhileIdle;
-    private final Map<String, ?> data;
+public abstract class GCMException extends RuntimeException {
+    private static final long serialVersionUID = -4756693306121825229L;
 
-    public C2DMNotificationImpl(List<String> registrationIds,
-                                String collapseKey,
-                                boolean delayWhileIdle,
-                                Map<String, ?> data) {
-        this.registrationIds = registrationIds;
-        this.collapseKey = collapseKey;
-        this.delayWhileIdle = delayWhileIdle;
-        this.data = data;
-    }
+    public GCMException()                      { super(); }
+    public GCMException(String message)        { super(message); }
+    public GCMException(Throwable cause)       { super(cause); }
+    public GCMException(String m, Throwable c) { super(m, c); }
 
-    @Override
-    public String getCollapseKey() {
-        return collapseKey;
-    }
-
-    @Override
-    public boolean isDelayWhileIdle() {
-        return delayWhileIdle;
-    }
-
-    @Override
-    public List<String> getRegistrationIds() {
-        return registrationIds;
-    }
-
-    @Override
-    public Map<String, ?> getData() {
-        return data;
-    }
-
-    @Override
-    public String toString() {
-        return "C2DMNotification{" +
-                "registrationIds=" + registrationIds +
-                ", collapseKey='" + collapseKey + '\'' +
-                ", delayWhileIdle=" + delayWhileIdle +
-                ", data=" + data +
-                '}';
-    }
 }

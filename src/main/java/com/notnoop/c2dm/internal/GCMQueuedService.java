@@ -30,57 +30,68 @@
  */
 package com.notnoop.c2dm.internal;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
+import com.notnoop.c2dm.GCMNotification;
+import com.notnoop.c2dm.GCMService;
 
-import com.notnoop.c2dm.C2DMNotification;
-import com.notnoop.c2dm.C2DMService;
-import com.notnoop.c2dm.exceptions.NetworkIOException;
-import org.apache.http.entity.StringEntity;
+public class GCMQueuedService extends AbstractGCMService implements GCMService {
 
-public abstract class AbstractC2DMService implements C2DMService {
-    private final String serviceUri;
-    private final AtomicReference<String> apiKey;
+    private AbstractGCMService service;
+    private BlockingQueue<GCMNotification> queue;
+    private AtomicBoolean started = new AtomicBoolean(false);
 
-    private final RequestBuilder requestBuilder = new RequestBuilder();
-
-    protected AbstractC2DMService(String serviceUri, String apiKey) {
-        this.serviceUri = serviceUri;
-        this.apiKey = new AtomicReference<String>(apiKey);
-    }
-
-    protected HttpPost postMessage(C2DMNotification notification) {
-        try {
-            HttpPost method = new HttpPost(serviceUri);
-            String jsonRequest = requestBuilder.build(notification);
-            HttpEntity entity = new StringEntity(jsonRequest, "UTF-8");
-
-            method.setEntity(entity);
-
-            method.addHeader("Content-Type", "application/json;charset=UTF-8");
-            method.addHeader("Authorization", "key=" + apiKey.get());
-            return method;
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+    public GCMQueuedService(AbstractGCMService service, String serviceUri, String apiKey) {
+        super(serviceUri, apiKey);
+        this.service = service;
+        this.queue = new LinkedBlockingQueue<GCMNotification>();
     }
 
     @Override
-    public void push(String payload) {
-        throw new RuntimeException("Not implemented yet");
+    public void push(GCMNotification message) {
+        if (!started.get()) {
+            throw new IllegalStateException("Service hasn't been started or was closed");
+        }
+
+        queue.add(message);
     }
+
+    private Thread thread;
+    private volatile boolean shouldContinue;
 
     @Override
     public void start() {
+        if (started.getAndSet(true)) {
+            // Should we throw a runtime IllegalStateException here?
+            return;
+        }
+
+        service.start();
+        shouldContinue = true;
+        thread = new Thread() {
+            @Override
+            public void run() {
+                while (shouldContinue) {
+                    try {
+                        service.push(queue.take());
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            }
+        };
+        thread.start();
     }
+
 
     @Override
     public void stop() {
+        started.set(false);
+        shouldContinue = false;
+        thread.interrupt();
+        service.stop();
     }
+
 }

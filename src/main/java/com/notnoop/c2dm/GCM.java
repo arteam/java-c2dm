@@ -31,27 +31,27 @@
 package com.notnoop.c2dm;
 
 /**
- * The main class to interact with the C2DM Service.
+ * The main class to interact with the GCM Service.
  *
- * Provides an interface to create the {@link C2DMServiceBuilder} and
+ * Provides an interface to create the {@link GCMServiceBuilder} and
  * {@code ApnsNotification} payload.
  *
  */
-public class C2DM {
+public class GCM {
 
-    private C2DM() { throw new AssertionError("Uninstantiable class"); }
+    private GCM() { throw new AssertionError("Uninstantiable class"); }
 
     /**
      * Returns a new Payload builder
      */
-    public static C2DMNotificationBuilder newNotification() {
-        return new C2DMNotificationBuilder();
+    public static GCMNotificationBuilder newNotification() {
+        return new GCMNotificationBuilder();
     }
 
     /**
      * Returns a new APNS Service for sending iPhone notifications
      */
-    public static C2DMServiceBuilder newService() {
-        return new C2DMServiceBuilder();
+    public static GCMServiceBuilder newService() {
+        return new GCMServiceBuilder();
     }
 }

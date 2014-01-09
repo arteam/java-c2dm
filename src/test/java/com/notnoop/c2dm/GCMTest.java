@@ -30,28 +30,29 @@
  */
 package com.notnoop.c2dm;
 
-public interface C2DMDelegate {
-    /**
-     * Delegate called when a notification is sent successfully to the Google
-     * C2DM servers.
-     *
-     * @param message   the sent message (null if client didn't create a
-     *              {@link C2DMNotification} object)
-     * @param response  the response Google sent
-     */
-    public void messageSent(C2DMNotification message, C2DMResponse response);
+import org.junit.Test;
 
-    /**
-     * Delegate method called when the C2DM server rejects or drops a message.
-     *
-     * The server may drop the message for various reasons.  Some may require
-     * the application to retry (e.g. when servers are down or over quota),
-     * and some require more work (e.g. invalid authentication, missing values).
-     *
-     * @param message   the sent message (null if client didn't create a
-     *              {@link C2DMNotification} object)
-     * @param response  the response Google sent
-     */
-    public void messageFailed(C2DMNotification message, C2DMResponse response);
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
+/**
+ * Silly Tests
+ */
+public class GCMTest {
+
+    @Test
+    public void testInstances() {
+        assertThat(GCM.newNotification(), is(GCMNotificationBuilder.class));
+        assertThat(GCM.newService(), is(GCMServiceBuilder.class));
+    }
+
+    @Test
+    public void notificationShouldGetNewInstances() {
+        assertNotSame(GCM.newNotification(), GCM.newNotification());
+    }
+
+    @Test
+    public void newServiceGetNewInstances() {
+        assertNotSame(GCM.newService(), GCM.newService());
+    }
 }

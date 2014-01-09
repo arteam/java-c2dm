@@ -30,70 +30,52 @@
  */
 package com.notnoop.c2dm.internal;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.notnoop.c2dm.GCMNotification;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
 
-import com.notnoop.c2dm.C2DMNotification;
-import com.notnoop.c2dm.C2DMService;
+import com.notnoop.c2dm.GCMService;
+import org.apache.http.entity.StringEntity;
 
-public class C2DMQueuedService extends AbstractC2DMService implements C2DMService {
+public abstract class AbstractGCMService implements GCMService {
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final String APPLICATION_JSON = "application/json";
 
-    private AbstractC2DMService service;
-    private BlockingQueue<C2DMNotification> queue;
-    private AtomicBoolean started = new AtomicBoolean(false);
+    private final String serviceUri;
+    private final AtomicReference<String> apiKey;
 
-    public C2DMQueuedService(AbstractC2DMService service, String serviceUri, String apiKey) {
-        super(serviceUri, apiKey);
-        this.service = service;
-        this.queue = new LinkedBlockingQueue<C2DMNotification>();
+    private final RequestBuilder requestBuilder = new RequestBuilder();
+
+    protected AbstractGCMService(String serviceUri, String apiKey) {
+        this.serviceUri = serviceUri;
+        this.apiKey = new AtomicReference<String>(apiKey);
+    }
+
+    protected HttpPost postMessage(GCMNotification notification) {
+        HttpPost method = new HttpPost(serviceUri);
+
+        String jsonRequest = requestBuilder.build(notification);
+        HttpEntity entity = new StringEntity(jsonRequest, UTF_8);
+
+        method.setEntity(entity);
+        method.addHeader("Content-Type", APPLICATION_JSON);
+        method.addHeader("Authorization", "key=" + apiKey.get());
+        return method;
     }
 
     @Override
-    public void push(C2DMNotification message) {
-        if (!started.get()) {
-            throw new IllegalStateException("Service hasn't been started or was closed");
-        }
-
-        queue.add(message);
+    public void push(String payload) {
+        throw new RuntimeException("Not implemented yet");
     }
-
-    private Thread thread;
-    private volatile boolean shouldContinue;
 
     @Override
     public void start() {
-        if (started.getAndSet(true)) {
-            // Should we throw a runtime IllegalStateException here?
-            return;
-        }
-
-        service.start();
-        shouldContinue = true;
-        thread = new Thread() {
-            @Override
-            public void run() {
-                while (shouldContinue) {
-                    try {
-                        service.push(queue.take());
-                    } catch (InterruptedException e) {
-                        return;
-                    }
-                }
-            }
-        };
-        thread.start();
     }
-
 
     @Override
     public void stop() {
-        started.set(false);
-        shouldContinue = false;
-        thread.interrupt();
-        service.stop();
     }
-
 }

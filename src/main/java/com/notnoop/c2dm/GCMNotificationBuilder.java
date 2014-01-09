@@ -41,21 +41,21 @@ import java.util.Map;
  * href="http://code.google.com/android/c2dm/index.html#server">Android Cloud to
  * Device Messaging Framework documentation</a>:
  */
-public class C2DMNotificationBuilder {
+public class GCMNotificationBuilder {
     private List<String> registrationIds;
     private String collapseKey;
     private boolean delayWhileIdle;
     private Map<String, Object> data = new HashMap<String, Object>();
 
-    public C2DMNotificationBuilder() {
+    public GCMNotificationBuilder() {
     }
 
-    public C2DMNotificationBuilder registrationId(String registrationId) {
+    public GCMNotificationBuilder registrationId(String registrationId) {
         this.registrationIds = Collections.singletonList(registrationId);
         return this;
     }
 
-    public C2DMNotificationBuilder registrationIds(List<String> registrationIds) {
+    public GCMNotificationBuilder registrationIds(List<String> registrationIds) {
         this.registrationIds = registrationIds;
         return this;
     }
@@ -74,7 +74,7 @@ public class C2DMNotificationBuilder {
      *
      * @return this
      */
-    public C2DMNotificationBuilder collapseKey(String collapseKey) {
+    public GCMNotificationBuilder collapseKey(String collapseKey) {
         this.collapseKey = collapseKey;
         return this;
     }
@@ -90,7 +90,7 @@ public class C2DMNotificationBuilder {
      *
      * @return this
      */
-    public C2DMNotificationBuilder delayWhileIdle(boolean delayWhileIdle) {
+    public GCMNotificationBuilder delayWhileIdle(boolean delayWhileIdle) {
         this.delayWhileIdle = delayWhileIdle;
         return this;
     }
@@ -107,7 +107,7 @@ public class C2DMNotificationBuilder {
      *
      * @return this
      */
-    public C2DMNotificationBuilder key(String key, Object value) {
+    public GCMNotificationBuilder key(String key, Object value) {
         data.put(key, value);
         return this;
     }
@@ -121,12 +121,12 @@ public class C2DMNotificationBuilder {
     /**
      * Returns a fully initialized notification object
      */
-    public C2DMNotification build() {
+    public GCMNotification build() {
         checkInitialization();
-        return new C2DMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
+        return new GCMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
     }
 
-    public C2DMNotificationBuilder data(Map<String, Object> dataMap) {
+    public GCMNotificationBuilder data(Map<String, Object> dataMap) {
         this.data = dataMap;
         return this;
     }

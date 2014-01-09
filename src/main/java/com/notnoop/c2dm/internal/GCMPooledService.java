@@ -31,57 +31,71 @@
 package com.notnoop.c2dm.internal;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.notnoop.c2dm.*;
+import com.notnoop.c2dm.exceptions.NetworkIOException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.EntityUtils;
 
-import com.notnoop.c2dm.exceptions.NetworkIOException;
+public class GCMPooledService extends AbstractGCMService implements GCMService {
 
-public class C2DMServiceImpl extends AbstractC2DMService implements C2DMService {
     private final HttpClient httpClient;
-    private final C2DMDelegate delegate;
-
+    private final ExecutorService executor;
+    private final GCMDelegate delegate;
     private final ResponseParser responseParser = new ResponseParser();
 
-    public C2DMServiceImpl(HttpClient httpClient, String serviceUri, String apiKey, C2DMDelegate delegate) {
+    public GCMPooledService(HttpClient httpClient, String serviceUri, String apiKey,
+                            ExecutorService executor, GCMDelegate delegate) {
         super(serviceUri, apiKey);
         this.httpClient = httpClient;
+        this.executor = executor;
         this.delegate = delegate;
     }
 
     @Override
-    public void push(C2DMNotification message) {
-        HttpResponse httpResponse = null;
-        try {
-            httpResponse = httpClient.execute(postMessage(message));
-            if (delegate != null) {
-                C2DMResponse cResponse = responseParser.parse(httpResponse);
-                C2DMResponseStatus status = cResponse.getStatus();
-                if (status == C2DMResponseStatus.SUCCESSFUL) {
-                    delegate.messageSent(message, cResponse);
-                } else {
-                    delegate.messageFailed(message, cResponse);
+    public void push(final GCMNotification message) {
+        executor.execute(new Runnable() {
+            public void run() {
+                HttpResponse httpResponse = null;
+                try {
+                    httpResponse = httpClient.execute(postMessage(message));
+                    if (delegate != null) {
+                        GCMResponse cResponse = responseParser.parse(httpResponse);
+                        GCMResponseStatus status = cResponse.getStatus();
+                        if (status == GCMResponseStatus.SUCCESSFUL) {
+                            delegate.messageSent(message, cResponse);
+                        } else {
+                            delegate.messageFailed(message, cResponse);
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new NetworkIOException(e);
+                } finally {
+                    try {
+                        if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
+                    } catch (IOException e) {
+                        System.err.println("Unable close response " + e);
+                    }
                 }
             }
-        } catch (ClientProtocolException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new NetworkIOException(e);
-        } finally {
-            try {
-                if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
-            } catch (IOException e) {
-                System.err.println("Unable close response " + e);
-            }
-        }
+        });
     }
 
     @Override
     public void stop() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         httpClient.getConnectionManager().shutdown();
     }
 

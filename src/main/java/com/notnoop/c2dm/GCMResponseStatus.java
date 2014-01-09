@@ -31,9 +31,9 @@
 package com.notnoop.c2dm;
 
 /**
- * Represents the logical response of C2DMService
+ * Represents the logical response of GCMService
  */
-public enum C2DMResponseStatus {
+public enum GCMResponseStatus {
     /**
      * Message was sent successfully
      */
@@ -85,9 +85,9 @@ public enum C2DMResponseStatus {
     private final String key;
     private final boolean shouldRetry;
 
-    public static final C2DMResponseStatus[] logicalResponses = C2DMResponseStatus.values();
+    public static final GCMResponseStatus[] logicalResponses = GCMResponseStatus.values();
 
-    C2DMResponseStatus(String key, boolean shouldRetry) {
+    GCMResponseStatus(String key, boolean shouldRetry) {
         this.key = key;
         this.shouldRetry = shouldRetry;
     }
@@ -104,8 +104,8 @@ public enum C2DMResponseStatus {
         return this == SUCCESSFUL;
     }
 
-    public static C2DMResponseStatus of(String key) {
-        for (C2DMResponseStatus r : C2DMResponseStatus.logicalResponses) {
+    public static GCMResponseStatus of(String key) {
+        for (GCMResponseStatus r : GCMResponseStatus.logicalResponses) {
             if (key.equals(r.getKey())) {
                 return r;
             }

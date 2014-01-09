@@ -4,16 +4,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents an C2DM notification to be sent to Google service.
+ * Represents an GCM notification to be sent to Google service.
  */
-public interface C2DMNotification {
+public interface GCMNotification {
 
     public List<String> getRegistrationIds();
 
 
 	/**
 	 * Returns the collapse key of the current message. The key is used by the
-	 * C2DM to group messages when the device is offline. Only the last message
+	 * GCM to group messages when the device is offline. Only the last message
 	 * of each group will be sent to the device when it comes online. However,
 	 * only a maximum of 4 notifications will be retained.
 	 * 

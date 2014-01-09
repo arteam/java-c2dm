@@ -28,32 +28,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.notnoop.c2dm.internal;
+package com.notnoop.c2dm;
 
-import java.util.Map;
+public interface GCMDelegate {
+    /**
+     * Delegate called when a notification is sent successfully to the Google
+     * GCM servers.
+     *
+     * @param message   the sent message (null if client didn't create a
+     *              {@link GCMNotification} object)
+     * @param response  the response Google sent
+     */
+    public void messageSent(GCMNotification message, GCMResponse response);
 
-public class Pair<K, V> implements Map.Entry<K, V> {
-    public final K key;
-    public final V value;
+    /**
+     * Delegate method called when the GCM server rejects or drops a message.
+     *
+     * The server may drop the message for various reasons.  Some may require
+     * the application to retry (e.g. when servers are down or over quota),
+     * and some require more work (e.g. invalid authentication, missing values).
+     *
+     * @param message   the sent message (null if client didn't create a
+     *              {@link GCMNotification} object)
+     * @param response  the response Google sent
+     */
+    public void messageFailed(GCMNotification message, GCMResponse response);
 
-    public Pair(K k, V v) {
-        this.key = k;
-        this.value = v;
-    }
-
-    public K getKey() {
-        return key;
-    }
-
-    public V getValue() {
-        return value;
-    }
-
-    public V setValue(V value) {
-        throw new UnsupportedOperationException("Pair is immutable!");
-    }
-
-    public static <K, V> Pair<K, V> of(K k, V v) {
-        return new Pair<K, V>(k, v);
-    }
 }

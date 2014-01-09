@@ -1,5 +1,5 @@
 /*
- * Copyright 2010, Mahmood Ali.
+ * Copyright 2011, Mahmood Ali.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.notnoop.c2dm;
 
-package com.notnoop.c2dm.exceptions;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Base class for all the exceptions thrown in Apns Library
+ * Represents an GCM notification to be sent to Google service.
  */
-public abstract class C2DMException extends RuntimeException {
-    private static final long serialVersionUID = -4756693306121825229L;
+public class GCMNotificationImpl implements GCMNotification {
+    private final List<String> registrationIds;
+    private final String collapseKey;
+    private final boolean delayWhileIdle;
+    private final Map<String, ?> data;
 
-    public C2DMException()                      { super(); }
-    public C2DMException(String message)        { super(message); }
-    public C2DMException(Throwable cause)       { super(cause); }
-    public C2DMException(String m, Throwable c) { super(m, c); }
+    public GCMNotificationImpl(List<String> registrationIds,
+                               String collapseKey,
+                               boolean delayWhileIdle,
+                               Map<String, ?> data) {
+        this.registrationIds = registrationIds;
+        this.collapseKey = collapseKey;
+        this.delayWhileIdle = delayWhileIdle;
+        this.data = data;
+    }
 
+    @Override
+    public String getCollapseKey() {
+        return collapseKey;
+    }
+
+    @Override
+    public boolean isDelayWhileIdle() {
+        return delayWhileIdle;
+    }
+
+    @Override
+    public List<String> getRegistrationIds() {
+        return registrationIds;
+    }
+
+    @Override
+    public Map<String, ?> getData() {
+        return data;
+    }
+
+    @Override
+    public String toString() {
+        return "GCMNotification{" +
+                "registrationIds=" + registrationIds +
+                ", collapseKey='" + collapseKey + '\'' +
+                ", delayWhileIdle=" + delayWhileIdle +
+                ", data=" + data +
+                '}';
+    }
 }

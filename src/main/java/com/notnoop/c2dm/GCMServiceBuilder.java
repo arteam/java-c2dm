@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -50,25 +49,25 @@ import org.apache.http.params.HttpParams;
 import com.notnoop.c2dm.internal.*;
 
 /**
- * The class is used to create instances of {@link C2DMService}.
+ * The class is used to create instances of {@link GCMService}.
  * <p/>
  * Note that this class is not synchronized.  If multiple threads access a
- * {@code C2DMServiceBuilder} instance concurrently, and at least on of the
+ * {@code GCMServiceBuilder} instance concurrently, and at least on of the
  * threads modifies one of the attributes structurally, it must be
  * synchronized externally.
  * <p/>
- * Starting a new {@code C2DMService} is easy:
+ * Starting a new {@code GCMService} is easy:
  * <p/>
  * <pre>
- *   C2DMService service = C2DM.newService()
+ *   GCMService service = GCM.newService()
  *                  .authToken("authtoken")
  *                  .build()
  * </pre>
  */
-public class C2DMServiceBuilder {
-    public static String DEFAULT_C2DM_SERVICE_URI = "https://android.googleapis.com/gcm/send";
+public class GCMServiceBuilder {
+    public static String DEFAULT_GCM_SERVICE_URI = "https://android.googleapis.com/gcm/send";
 
-    private String serviceUri = DEFAULT_C2DM_SERVICE_URI;
+    private String serviceUri = DEFAULT_GCM_SERVICE_URI;
 
     private String apiKey;
 
@@ -80,12 +79,12 @@ public class C2DMServiceBuilder {
     private UsernamePasswordCredentials proxyAuth = null;
     private int timeout = -1;
 
-    private C2DMDelegate delegate;
+    private GCMDelegate delegate;
 
     /**
-     * Constructs a new instance of {@code C2DMServiceBuilder}
+     * Constructs a new instance of {@code GCMServiceBuilder}
      */
-    C2DMServiceBuilder() {
+    GCMServiceBuilder() {
     }
 
     /**
@@ -100,31 +99,31 @@ public class C2DMServiceBuilder {
      * @param port the port of the HTTP proxy server
      * @return this
      */
-    public C2DMServiceBuilder withHttpProxy(String host, int port) {
+    public GCMServiceBuilder withHttpProxy(String host, int port) {
         proxy = new HttpHost(host, port);
         return this;
     }
 
 
-    public C2DMServiceBuilder withProxyAuth(String username, String password) {
+    public GCMServiceBuilder withProxyAuth(String username, String password) {
         proxyAuth = new UsernamePasswordCredentials(username, password);
         return this;
     }
 
     /**
-     * Specify the service URI to post Google C2DM request to.
+     * Specify the service URI to post Google GCM request to.
      * <p/>
      * This method should be used only for testing.  By default, the
      * notifications are posted to
      * {@linkplain https://android.apis.google.com/c2dm/send}, as specified
-     * by the Google C2DM.
+     * by the Google GCM.
      */
-    public C2DMServiceBuilder withServiceUri(String serviceUri) {
+    public GCMServiceBuilder withServiceUri(String serviceUri) {
         this.serviceUri = serviceUri;
         return this;
     }
 
-    public C2DMServiceBuilder withApiKey(String apiKey) {
+    public GCMServiceBuilder withApiKey(String apiKey) {
         this.apiKey = apiKey;
         return this;
     }
@@ -132,7 +131,7 @@ public class C2DMServiceBuilder {
     /**
      * Constructs a pool of connections to the notification servers.
      */
-    public C2DMServiceBuilder asPool(int maxConnections) {
+    public GCMServiceBuilder asPool(int maxConnections) {
         return asPool(Executors.newFixedThreadPool(maxConnections), maxConnections);
     }
 
@@ -142,7 +141,7 @@ public class C2DMServiceBuilder {
      * Note: The maxConnections here is used as a hint to how many connections
      * get created.
      */
-    public C2DMServiceBuilder asPool(ExecutorService executor, int maxConnections) {
+    public GCMServiceBuilder asPool(ExecutorService executor, int maxConnections) {
         this.pooledMax = maxConnections;
         this.executor = executor;
         return this;
@@ -154,7 +153,7 @@ public class C2DMServiceBuilder {
      *
      * @return this
      */
-    public C2DMServiceBuilder asQueued() {
+    public GCMServiceBuilder asQueued() {
         this.isQueued = true;
         return this;
     }
@@ -165,23 +164,23 @@ public class C2DMServiceBuilder {
      * @param timeout the time out period in millis
      * @return this
      */
-    public C2DMServiceBuilder withTimeout(int timeout) {
+    public GCMServiceBuilder withTimeout(int timeout) {
         this.timeout = timeout;
         return this;
     }
 
-    public C2DMServiceBuilder withDelegate(C2DMDelegate delegate) {
+    public GCMServiceBuilder withDelegate(GCMDelegate delegate) {
         this.delegate = delegate;
         return this;
     }
 
     /**
-     * Returns a fully initialized instance of {@link C2DMService},
+     * Returns a fully initialized instance of {@link GCMService},
      * according to the requested settings.
      *
-     * @return a new instance of C2DMService
+     * @return a new instance of GCMService
      */
-    public C2DMService build() {
+    public GCMService build() {
         checkInitialization();
 
         // Client Configuration
@@ -206,15 +205,15 @@ public class C2DMServiceBuilder {
         }
 
         // Configure service
-        AbstractC2DMService service;
+        AbstractGCMService service;
         if (pooledMax == 1) {
-            service = new C2DMServiceImpl(client, serviceUri, apiKey, delegate);
+            service = new GCMServiceImpl(client, serviceUri, apiKey, delegate);
         } else {
-            service = new C2DMPooledService(client, serviceUri, apiKey, executor, delegate);
+            service = new GCMPooledService(client, serviceUri, apiKey, executor, delegate);
         }
 
         if (isQueued) {
-            service = new C2DMQueuedService(service, serviceUri, apiKey);
+            service = new GCMQueuedService(service, serviceUri, apiKey);
         }
 
         service.start();
