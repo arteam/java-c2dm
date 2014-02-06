@@ -1,9 +1,11 @@
 package com.notnoop.c2dm;
 
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.internal.StringMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Date: 09.07.13
