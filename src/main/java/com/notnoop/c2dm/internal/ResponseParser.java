@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.StringMap;
 import com.notnoop.c2dm.GCMResponse;
 import com.notnoop.c2dm.GCMResponseStatus;
+import com.notnoop.c2dm.exceptions.GCMException;
 import com.notnoop.c2dm.exceptions.NetworkIOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -21,43 +22,19 @@ public class ResponseParser {
 
     @SuppressWarnings("unchecked")
     public GCMResponse parse(HttpResponse httpResponse) {
-        StringMap jsonResponse = toResponse(httpResponse.getEntity());
-
-        GCMResponseStatus status = getStatus(httpResponse, jsonResponse);
-        long multicastId = Long.parseLong(jsonResponse.get("multicast_id").toString());
-        int success = (Integer) jsonResponse.get("success");
-        int failure = (Integer) jsonResponse.get("failure");
-        int canonicalIds = (Integer) jsonResponse.get("canonical_ids");
-        StringMap<String> results = (StringMap<String>) jsonResponse.get("results");
-        return new GCMResponse(multicastId, success, failure, canonicalIds, results, status);
-    }
-
-
-    public GCMResponseStatus getStatus(HttpResponse httpResponse, StringMap jsonResponse) {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         switch (statusCode) {
-            case 503:
-                return GCMResponseStatus.SERVER_UNAVAILABLE;
-            case 400:
-                return GCMResponseStatus.INVALID_REQUEST;
-            case 401:
-                return GCMResponseStatus.INVALID_AUTHENTICATION;
             case 200: {
-                StringMap result = (StringMap) jsonResponse.get("result");
-                if (result.containsKey("message_id")) {
-                    return GCMResponseStatus.SUCCESSFUL;
-                }
-                if (result.containsKey("registration_id")) {
-                    return GCMResponseStatus.INVALID_REGISTRATION;
-                }
-                if (result.containsKey("error")) {
-                    String error = (String) result.get("error");
-                    return GCMResponseStatus.of(error);
-                }
-                return GCMResponseStatus.UNKNOWN_ERROR;
+                return toResponse(httpResponse.getEntity());
             }
+            case 503:
+                return GCMResponse.withStatus(GCMResponseStatus.SERVER_UNAVAILABLE);
+            case 400:
+                return GCMResponse.withStatus(GCMResponseStatus.INVALID_REQUEST);
+            case 401:
+                return GCMResponse.withStatus(GCMResponseStatus.INVALID_AUTHENTICATION);
             default:
-                return GCMResponseStatus.UNKNOWN_ERROR;
+                return GCMResponse.withStatus(GCMResponseStatus.UNKNOWN_ERROR);
         }
     }
 
@@ -70,12 +47,17 @@ public class ResponseParser {
      * { "message_id": "1:08" }
      * ]}
      */
-    private StringMap toResponse(HttpEntity entity) {
+    private GCMResponse toResponse(HttpEntity entity) {
+        String content;
         try {
-            String content = EntityUtils.toString(entity, "UTF-8");
-            return gson.fromJson(content, StringMap.class);
+            content = EntityUtils.toString(entity, "UTF-8");
         } catch (IOException e) {
             throw new NetworkIOException(e);
+        }
+        try {
+            return gson.fromJson(content, GCMResponse.class);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable parse response: " + content, e);
         }
     }
 }

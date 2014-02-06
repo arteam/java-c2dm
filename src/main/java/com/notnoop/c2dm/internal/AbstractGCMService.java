@@ -45,13 +45,13 @@ public abstract class AbstractGCMService implements GCMService {
     private static final String APPLICATION_JSON = "application/json";
 
     private final String serviceUri;
-    private final AtomicReference<String> apiKey;
+    private final String apiKey;
 
     private final RequestBuilder requestBuilder = new RequestBuilder();
 
     protected AbstractGCMService(String serviceUri, String apiKey) {
         this.serviceUri = serviceUri;
-        this.apiKey = new AtomicReference<String>(apiKey);
+        this.apiKey = apiKey;
     }
 
     protected HttpPost postMessage(GCMNotification notification) {
@@ -62,7 +62,7 @@ public abstract class AbstractGCMService implements GCMService {
 
         method.setEntity(entity);
         method.addHeader("Content-Type", APPLICATION_JSON);
-        method.addHeader("Authorization", "key=" + apiKey.get());
+        method.addHeader("Authorization", "key=" + apiKey);
         return method;
     }
 

@@ -30,6 +30,8 @@
  */
 package com.notnoop.c2dm;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,12 +43,17 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 
 import com.notnoop.c2dm.internal.*;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * The class is used to create instances of {@link GCMService}.
@@ -184,12 +191,7 @@ public class GCMServiceBuilder {
         checkInitialization();
 
         // Client Configuration
-        DefaultHttpClient client;
-        if (pooledMax == 1) {
-            client = new DefaultHttpClient();
-        } else {
-            client = new DefaultHttpClient(poolManager(pooledMax));
-        }
+        DefaultHttpClient client = new DefaultHttpClient(poolManager(pooledMax));
 
         if (proxy != null) {
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
@@ -233,8 +235,36 @@ public class GCMServiceBuilder {
     private ClientConnectionManager poolManager(int maxConnections) {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+        /* Если защищенное соединение */
+        try {
+            SSLContext ctx = SSLContext.getInstance(SSLSocketFactory.TLS);
+            ctx.init(null, new TrustManager[]{TRUST_MANAGER}, null);
+
+            SSLSocketFactory sslSocketFactory = new SSLSocketFactory(ctx, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+            Scheme scheme = new Scheme("https", 443, sslSocketFactory);
+            schemeRegistry.register(scheme);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable get schema by port :" + 443, e);
+        }
+
         PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
         cm.setMaxTotal(maxConnections);
         return cm;
     }
+
+    private static final X509TrustManager TRUST_MANAGER = new X509TrustManager() {
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
+    };
 }

@@ -1,6 +1,9 @@
 package com.notnoop.c2dm;
 
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.StringMap;
+
+import java.util.*;
 
 /**
  * Date: 09.07.13
@@ -8,21 +11,31 @@ import com.google.gson.internal.StringMap;
  */
 public class GCMResponse {
 
+    private static final List<Map<String, ?>> EMPTY = Collections.unmodifiableList(new ArrayList<Map<String, ?>>(1));
+
+    @SerializedName("multicast_id")
     private long multicastId;
     private int success;
     private int failure;
+
+    @SerializedName("canonical_ids")
     private int canonicalIds;
-    private StringMap<String> results;
-    private GCMResponseStatus status;
+    private List<Map<String, ?>> results;
+
+    private GCMResponseStatus status = GCMResponseStatus.SUCCESSFUL;
 
     public GCMResponse(long multicastId, int success, int failure, int canonicalIds,
-                       StringMap<String> results, GCMResponseStatus status) {
+                       List<Map<String, ?>> results, GCMResponseStatus status) {
         this.multicastId = multicastId;
         this.success = success;
         this.failure = failure;
         this.canonicalIds = canonicalIds;
         this.results = results;
         this.status = status;
+    }
+
+    public static GCMResponse withStatus(GCMResponseStatus status) {
+        return new GCMResponse(0, 0, 1, 0, EMPTY, status);
     }
 
     public long getMulticastId() {
@@ -41,7 +54,7 @@ public class GCMResponse {
         return canonicalIds;
     }
 
-    public StringMap<String> getResults() {
+    public List<Map<String, ?>> getResults() {
         return results;
     }
 

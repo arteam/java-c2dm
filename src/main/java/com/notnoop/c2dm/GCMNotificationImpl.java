@@ -30,6 +30,8 @@
  */
 package com.notnoop.c2dm;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,9 +39,17 @@ import java.util.Map;
  * Represents an GCM notification to be sent to Google service.
  */
 public class GCMNotificationImpl implements GCMNotification {
+
+    @SerializedName("registration_ids")
     private final List<String> registrationIds;
+
+    @SerializedName("collapse_key")
     private final String collapseKey;
+
+    @SerializedName("delay_while_idle")
     private final boolean delayWhileIdle;
+
+    @SerializedName("data")
     private final Map<String, ?> data;
 
     public GCMNotificationImpl(List<String> registrationIds,
