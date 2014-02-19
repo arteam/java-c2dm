@@ -28,54 +28,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.notnoop.c2dm.internal;
+package com.notnoop.c2dm.domain;
 
-import java.nio.charset.Charset;
-import java.util.concurrent.atomic.AtomicReference;
+/**
+ * Represents the logical response of GCMService
+ */
+public enum GCMError {
 
-import com.notnoop.c2dm.GCMNotification;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpPost;
+    /**
+     * Too many messages sent by the sender. Retry after a while.
+     */
+    UNAVAILABLE("Unavailable", true),
 
-import com.notnoop.c2dm.GCMService;
-import org.apache.http.entity.StringEntity;
+    /**
+     * Missing or bad registration_id. Sender should stop sending messages to
+     * this device.
+     */
+    INVALID_REGISTRATION("InvalidRegistration", false),
 
-public abstract class AbstractGCMService implements GCMService {
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final String APPLICATION_JSON = "application/json";
+    /**
+     * The registration_id is no longer valid, for example user has
+     * uninstalled the application or turned off notifications. Sender should
+     * stop sending messages to this device.
+     */
+    NOT_REGISTERED("NotRegistered", false);
 
-    private final String serviceUri;
-    private final String apiKey;
 
-    private final RequestBuilder requestBuilder = new RequestBuilder();
+    private final String key;
+    private final boolean shouldRetry;
 
-    protected AbstractGCMService(String serviceUri, String apiKey) {
-        this.serviceUri = serviceUri;
-        this.apiKey = apiKey;
+    public static final GCMError[] logicalResponses = GCMError.values();
+
+    GCMError(String key, boolean shouldRetry) {
+        this.key = key;
+        this.shouldRetry = shouldRetry;
     }
 
-    protected HttpPost postMessage(GCMNotification notification) {
-        HttpPost method = new HttpPost(serviceUri);
-
-        String jsonRequest = requestBuilder.build(notification);
-        HttpEntity entity = new StringEntity(jsonRequest, UTF_8);
-
-        method.setEntity(entity);
-        method.addHeader("Content-Type", APPLICATION_JSON);
-        method.addHeader("Authorization", "key=" + apiKey);
-        return method;
+    public boolean shouldRetry() {
+        return shouldRetry;
     }
 
-    @Override
-    public void push(String payload) {
-        throw new RuntimeException("Not implemented yet");
+    public String getKey() {
+        return key;
     }
 
-    @Override
-    public void start() {
-    }
-
-    @Override
-    public void stop() {
+    public static GCMError of(String key) {
+        for (GCMError r : GCMError.logicalResponses) {
+            if (key.equals(r.getKey())) {
+                return r;
+            }
+        }
+        return null;
     }
 }

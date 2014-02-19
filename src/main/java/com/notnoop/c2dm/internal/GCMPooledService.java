@@ -30,57 +30,31 @@
  */
 package com.notnoop.c2dm.internal;
 
-import java.io.IOException;
+import com.notnoop.c2dm.GCMDelegate;
+import com.notnoop.c2dm.GCMNotification;
+import com.notnoop.c2dm.GCMService;
+import org.apache.http.client.HttpClient;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.notnoop.c2dm.*;
-import com.notnoop.c2dm.exceptions.NetworkIOException;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.util.EntityUtils;
+public class GCMPooledService implements GCMService {
 
-public class GCMPooledService extends AbstractGCMService implements GCMService {
+    private ExecutorService executor;
 
-    private final HttpClient httpClient;
-    private final ExecutorService executor;
-    private final GCMDelegate delegate;
-    private final ResponseParser responseParser = new ResponseParser();
+    private GCMService service;
 
-    public GCMPooledService(HttpClient httpClient, String serviceUri, String apiKey,
-                            ExecutorService executor, GCMDelegate delegate) {
-        super(serviceUri, apiKey);
-        this.httpClient = httpClient;
+    public GCMPooledService(String serviceUri, String apiKey,
+                            HttpClient httpClient, GCMDelegate delegate, ExecutorService executor) {
+        service = new GCMServiceImpl(serviceUri, apiKey, httpClient, delegate);
         this.executor = executor;
-        this.delegate = delegate;
     }
 
     @Override
     public void push(final GCMNotification message) {
         executor.execute(new Runnable() {
             public void run() {
-                HttpResponse httpResponse = null;
-                try {
-                    httpResponse = httpClient.execute(postMessage(message));
-                    if (delegate != null) {
-                        GCMResponse cResponse = responseParser.parse(httpResponse);
-                        GCMResponseStatus status = cResponse.getStatus();
-                        if (status == GCMResponseStatus.SUCCESSFUL) {
-                            delegate.messageSent(message, cResponse);
-                        } else {
-                            delegate.messageFailed(message, cResponse);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new NetworkIOException(e);
-                } finally {
-                    try {
-                        if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
-                    } catch (IOException e) {
-                        System.err.println("Unable close response " + e);
-                    }
-                }
+                service.push(message);
             }
         });
     }
@@ -95,8 +69,7 @@ public class GCMPooledService extends AbstractGCMService implements GCMService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-
-        httpClient.getConnectionManager().shutdown();
+        service.stop();
     }
 
 }

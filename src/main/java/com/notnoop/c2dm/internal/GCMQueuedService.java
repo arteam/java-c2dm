@@ -37,43 +37,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.notnoop.c2dm.GCMNotification;
 import com.notnoop.c2dm.GCMService;
 
-public class GCMQueuedService extends AbstractGCMService implements GCMService {
+public class GCMQueuedService implements GCMService {
 
-    private AbstractGCMService service;
+    private GCMService service;
     private BlockingQueue<GCMNotification> queue;
-    private AtomicBoolean started = new AtomicBoolean(false);
+    private Thread thread;
 
-    public GCMQueuedService(AbstractGCMService service, String serviceUri, String apiKey) {
-        super(serviceUri, apiKey);
+    public GCMQueuedService(final GCMService service) {
         this.service = service;
         this.queue = new LinkedBlockingQueue<GCMNotification>();
-    }
 
-    @Override
-    public void push(GCMNotification message) {
-        if (!started.get()) {
-            throw new IllegalStateException("Service hasn't been started or was closed");
-        }
-
-        queue.add(message);
-    }
-
-    private Thread thread;
-    private volatile boolean shouldContinue;
-
-    @Override
-    public void start() {
-        if (started.getAndSet(true)) {
-            // Should we throw a runtime IllegalStateException here?
-            return;
-        }
-
-        service.start();
-        shouldContinue = true;
         thread = new Thread() {
             @Override
             public void run() {
-                while (shouldContinue) {
+                while (!Thread.currentThread().isInterrupted()) {
                     try {
                         service.push(queue.take());
                     } catch (InterruptedException e) {
@@ -85,11 +62,13 @@ public class GCMQueuedService extends AbstractGCMService implements GCMService {
         thread.start();
     }
 
+    @Override
+    public void push(GCMNotification message) {
+        queue.add(message);
+    }
 
     @Override
     public void stop() {
-        started.set(false);
-        shouldContinue = false;
         thread.interrupt();
         service.stop();
     }

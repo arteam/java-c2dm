@@ -122,7 +122,7 @@ public class GCMServiceBuilder {
      * <p/>
      * This method should be used only for testing.  By default, the
      * notifications are posted to
-     * {@linkplain https://android.apis.google.com/c2dm/send}, as specified
+     * {@linkplain "https://android.apis.google.com/c2dm/send"}, as specified
      * by the Google GCM.
      */
     public GCMServiceBuilder withServiceUri(String serviceUri) {
@@ -188,68 +188,67 @@ public class GCMServiceBuilder {
      * @return a new instance of GCMService
      */
     public GCMService build() {
-        checkInitialization();
-
-        // Client Configuration
-        DefaultHttpClient client = new DefaultHttpClient(poolManager(pooledMax));
-
-        if (proxy != null) {
-            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-            if (proxyAuth != null) {
-                client.getCredentialsProvider().setCredentials(new AuthScope(proxy), proxyAuth);
-            }
-        }
-
-        if (timeout > 0) {
-            HttpParams params = client.getParams();
-            params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
-            params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
-        }
-
-        // Configure service
-        AbstractGCMService service;
-        if (pooledMax == 1) {
-            service = new GCMServiceImpl(client, serviceUri, apiKey, delegate);
-        } else {
-            service = new GCMPooledService(client, serviceUri, apiKey, executor, delegate);
-        }
-
-        if (isQueued) {
-            service = new GCMQueuedService(service, serviceUri, apiKey);
-        }
-
-        service.start();
-        return service;
-    }
-
-    private void checkInitialization() {
         if (apiKey == null) {
             throw new IllegalStateException("AuthToken is required");
         }
         if (pooledMax != 1 && executor == null) {
             throw new IllegalStateException("Executor service is required for pooled connections");
         }
+
+        DefaultHttpClient client = getClient();
+
+        // Configure service
+        GCMService service = pooledMax == 1 ?
+                new GCMServiceImpl(serviceUri, apiKey, client, delegate) :
+                new GCMPooledService(serviceUri, apiKey, client, delegate, executor);
+        if (isQueued) {
+            service = new GCMQueuedService(service);
+        }
+        return service;
+    }
+
+
+    /**
+     * Client Configuration
+     */
+    private DefaultHttpClient getClient() {
+        DefaultHttpClient client = new DefaultHttpClient(poolManager(pooledMax));
+        if (proxy != null) {
+            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            if (proxyAuth != null) {
+                client.getCredentialsProvider().setCredentials(new AuthScope(proxy), proxyAuth);
+            }
+        }
+        if (timeout > 0) {
+            HttpParams params = client.getParams();
+            params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
+            params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
+        }
+        return client;
     }
 
 
     private ClientConnectionManager poolManager(int maxConnections) {
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-        /* Если защищенное соединение */
+        schemeRegistry.register(httpsScheme());
+
+        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
+        cm.setMaxTotal(maxConnections);
+        return cm;
+    }
+
+    private Scheme httpsScheme() {
+        int httpsPort = 443;
         try {
             SSLContext ctx = SSLContext.getInstance(SSLSocketFactory.TLS);
             ctx.init(null, new TrustManager[]{TRUST_MANAGER}, null);
 
             SSLSocketFactory sslSocketFactory = new SSLSocketFactory(ctx, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            Scheme scheme = new Scheme("https", 443, sslSocketFactory);
-            schemeRegistry.register(scheme);
+            return new Scheme("https", httpsPort, sslSocketFactory);
         } catch (Exception e) {
-            throw new IllegalStateException("Unable get schema by port :" + 443, e);
+            throw new IllegalStateException("Unable get schema by port :" + httpsPort, e);
         }
-
-        PoolingClientConnectionManager cm = new PoolingClientConnectionManager(schemeRegistry);
-        cm.setMaxTotal(maxConnections);
-        return cm;
     }
 
     private static final X509TrustManager TRUST_MANAGER = new X509TrustManager() {

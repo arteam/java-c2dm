@@ -30,28 +30,27 @@
  */
 package com.notnoop.c2dm;
 
+import com.notnoop.c2dm.domain.GCMStatus;
+import com.notnoop.c2dm.domain.GCMResponse;
+
 public interface GCMDelegate {
     /**
      * Delegate called when a notification is sent successfully to the Google
      * GCM servers.
      *
-     * @param message   the sent message (null if client didn't create a
-     *              {@link GCMNotification} object)
-     * @param response  the response Google sent
+     * @param message  the sent message (null if client didn't create a
+     *                 {@link GCMNotification} object)
+     * @param response the response Google sent
      */
     public void messageSent(GCMNotification message, GCMResponse response);
 
     /**
-     * Delegate method called when the GCM server rejects or drops a message.
-     *
-     * The server may drop the message for various reasons.  Some may require
-     * the application to retry (e.g. when servers are down or over quota),
-     * and some require more work (e.g. invalid authentication, missing values).
+     * Delegate method called when the GCM server rejects request.
      *
      * @param message   the sent message (null if client didn't create a
-     *              {@link GCMNotification} object)
-     * @param response  the response Google sent
+     *                  {@link GCMNotification} object)
+     * @param gcmStatus error status
      */
-    public void messageFailed(GCMNotification message, GCMResponse response);
+    public void messageFailed(GCMNotification message, GCMStatus gcmStatus);
 
 }

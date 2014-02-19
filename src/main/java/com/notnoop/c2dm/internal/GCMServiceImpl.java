@@ -31,45 +31,57 @@
 package com.notnoop.c2dm.internal;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import com.notnoop.c2dm.*;
+import com.notnoop.c2dm.domain.GCMError;
+import com.notnoop.c2dm.domain.GCMResponse;
+import com.notnoop.c2dm.domain.GCMStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
 import com.notnoop.c2dm.exceptions.NetworkIOException;
 
-public class GCMServiceImpl extends AbstractGCMService implements GCMService {
+public class GCMServiceImpl implements GCMService {
+
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final String APPLICATION_JSON = "application/json";
+
+    private final String serviceUri;
+    private final String apiKey;
+
     private final HttpClient httpClient;
     private final GCMDelegate delegate;
 
+    private final RequestBuilder requestBuilder = new RequestBuilder();
     private final ResponseParser responseParser = new ResponseParser();
 
-    public GCMServiceImpl(HttpClient httpClient, String serviceUri, String apiKey, GCMDelegate delegate) {
-        super(serviceUri, apiKey);
+    public GCMServiceImpl(String serviceUri, String apiKey, HttpClient httpClient, GCMDelegate delegate) {
+        this.serviceUri = serviceUri;
+        this.apiKey = apiKey;
         this.httpClient = httpClient;
         this.delegate = delegate;
     }
 
-    @Override
     public void push(GCMNotification message) {
         HttpResponse httpResponse = null;
         try {
             httpResponse = httpClient.execute(postMessage(message));
             if (delegate != null) {
-                GCMResponse cResponse = responseParser.parse(httpResponse);
-                GCMResponseStatus status = cResponse.getStatus();
-                if (status == GCMResponseStatus.SUCCESSFUL) {
-                    delegate.messageSent(message, cResponse);
+                GCMStatus status = GCMStatus.valueOf(httpResponse.getStatusLine().getStatusCode());
+                if (status == GCMStatus.SUCCESSFUL) {
+                    GCMResponse response = responseParser.parse(message, httpResponse.getEntity());
+                    delegate.messageSent(message, response);
                 } else {
-                    delegate.messageFailed(message, cResponse);
+                    delegate.messageFailed(message, status);
                 }
             }
-        } catch (ClientProtocolException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new NetworkIOException(e);
+            throw new NetworkIOException("Unable send request to " + serviceUri, e);
         } finally {
             try {
                 if (httpResponse != null) EntityUtils.consume(httpResponse.getEntity());
@@ -77,6 +89,16 @@ public class GCMServiceImpl extends AbstractGCMService implements GCMService {
                 System.err.println("Unable close response " + e);
             }
         }
+    }
+
+    protected HttpPost postMessage(GCMNotification notification) {
+        HttpPost method = new HttpPost(serviceUri);
+
+        String jsonRequest = requestBuilder.build(notification);
+        method.setEntity(new StringEntity(jsonRequest, UTF_8));
+        method.addHeader("Content-Type", APPLICATION_JSON);
+        method.addHeader("Authorization", "key=" + apiKey);
+        return method;
     }
 
     @Override

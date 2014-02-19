@@ -34,9 +34,9 @@ import com.notnoop.c2dm.exceptions.NetworkIOException;
 
 /**
  * Represents the connection and interface to the Google GCM servers.
- *
+ * <p/>
  * The service is created by {@link GCMServiceBuilder} like:
- *
+ * <p/>
  * <pre>
  *   GCMService service = GCM.newService()
  *                  .build()
@@ -45,46 +45,18 @@ import com.notnoop.c2dm.exceptions.NetworkIOException;
 public interface GCMService {
 
     /**
-     * Sends a push notification with the provided {@code payload} to the
-     * Android of {@code deviceToken}.
-     *
-     * The payload needs to be a valid JSON object, otherwise it may fail
-     * silently.  It is recommended to use {@link PayloadBuilder} to create
-     * one.
-     *
-     * @param payload       The payload message
-     * @throws NetworkIOException if a network error occured while
-     *      attempting to send the message
-     */
-    void push(String payload);
-
-    /**
      * Sends the provided notification {@code message} to the desired
      * destination.
+     *
      * @throws NetworkIOException if a network error occured while
-     *      attempting to send the message
+     *                            attempting to send the message
      */
     void push(GCMNotification message);
 
     /**
-     * Starts the service.
-     *
-     * The underlying implementation may prepare its connections or
-     * datastructures to be able to send the messages.
-     *
-     * This method is a blocking call, even if the service represents
-     * a Non-blocking push service.  Once the service is returned, it is ready
-     * to accept push requests.
-     *
-     * @throws NetworkIOException if a network error occurred while
-     *      starting the service
-     */
-    void start();
-
-    /**
      * Stops the service and frees any allocated resources it created for this
      * service.
-     *
+     * <p/>
      * The underlying implementation should close all connections it created,
      * and possibly stop any threads as well.
      */
