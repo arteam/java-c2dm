@@ -30,10 +30,11 @@
  */
 package com.notnoop.c2dm;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a builder for constructing the notifications requests, as
@@ -45,7 +46,7 @@ public class GCMNotificationBuilder {
     private List<String> registrationIds;
     private String collapseKey;
     private boolean delayWhileIdle;
-    private Map<String, Object> data = new HashMap<String, Object>();
+    private JsonObject data = new JsonObject();
 
     public GCMNotificationBuilder() {
     }
@@ -96,19 +97,42 @@ public class GCMNotificationBuilder {
     }
 
     /**
-     * Appends an application specific payload data entry.
-     * <p/>
-     * Payload data, expressed as key-value pairs. If present, it will be
-     * included in the Intent as application data, with the <key>. There is no
-     * limit on the number of key/value pairs, though there is a limit on the
-     * total size of the message.
-     * <p/>
-     * This field is optional.
-     *
-     * @return this
+     * Appends a character value by a key
      */
-    public GCMNotificationBuilder key(String key, Object value) {
-        data.put(key, value);
+    public GCMNotificationBuilder key(String key, Character value) {
+        data.addProperty(key, value);
+        return this;
+    }
+
+    /**
+     * Appends a character value by a key
+     */
+    public GCMNotificationBuilder key(String key, Boolean value) {
+        data.addProperty(key, value);
+        return this;
+    }
+
+    /**
+     * Appends a character value by a key
+     */
+    public GCMNotificationBuilder key(String key, Number value) {
+        data.addProperty(key, value);
+        return this;
+    }
+
+    /**
+     * Appends a character value by a key
+     */
+    public GCMNotificationBuilder key(String key, String value) {
+        data.addProperty(key, value);
+        return this;
+    }
+
+    /**
+     * Appends a character value by a key
+     */
+    public GCMNotificationBuilder key(String property, JsonElement value) {
+        data.add(property, value);
         return this;
     }
 
@@ -126,7 +150,7 @@ public class GCMNotificationBuilder {
         return new GCMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
     }
 
-    public GCMNotificationBuilder data(Map<String, Object> dataMap) {
+    public GCMNotificationBuilder data(JsonObject dataMap) {
         this.data = dataMap;
         return this;
     }

@@ -1,5 +1,7 @@
 package com.notnoop.c2dm;
 
+import com.google.gson.JsonObject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -39,5 +41,5 @@ public interface GCMNotification {
 	 * 
 	 * @return the payload key-value pairs
 	 */
-	public Map<String, ?> getData();
+	public JsonObject getData();
 }

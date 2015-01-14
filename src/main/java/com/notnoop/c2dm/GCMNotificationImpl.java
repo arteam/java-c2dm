@@ -30,6 +30,7 @@
  */
 package com.notnoop.c2dm;
 
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -50,12 +51,12 @@ public class GCMNotificationImpl implements GCMNotification {
     private final boolean delayWhileIdle;
 
     @SerializedName("data")
-    private final Map<String, ?> data;
+    private final JsonObject data;
 
     public GCMNotificationImpl(List<String> registrationIds,
                                String collapseKey,
                                boolean delayWhileIdle,
-                               Map<String, ?> data) {
+                               JsonObject data) {
         this.registrationIds = registrationIds;
         this.collapseKey = collapseKey;
         this.delayWhileIdle = delayWhileIdle;
@@ -78,7 +79,7 @@ public class GCMNotificationImpl implements GCMNotification {
     }
 
     @Override
-    public Map<String, ?> getData() {
+    public JsonObject getData() {
         return data;
     }
 
