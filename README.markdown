@@ -1,5 +1,5 @@
 java-gcm is a Java client for Google Cloud Messaging (GCM)
-The library aims to provide a highly scalable interface to the Apple
+The library aims to provide a highly scalable interface to the Google
 server, while still being simple and modular.
 
 Sample Code
