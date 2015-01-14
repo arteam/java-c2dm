@@ -57,7 +57,3 @@ Licensed under the [New 3-Clause BSD License](http://www.opensource.org/licenses
     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Contact
----------------
-Support mailing list: http://groups.google.com/group/java-apns-discuss
