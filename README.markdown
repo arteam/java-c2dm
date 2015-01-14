@@ -9,18 +9,22 @@ To send a notification, you can do it in two steps:
 
 1. Setup the connection
 
+````java
         GCMServiceBuilder service =
             GCM.newService()
             .withAuthToken("serviceAuthenticationToken")
             .build();
+````
 
 2. Create and send the message
 
+````java
         GCMNotification notification = GCM.newNotification()
             .collapseKey("daily_message").delayWhileIdle(true)
             .build();
         String registrationId = "deviceRegistrationID";
         service.push(registrationId, notification);
+````
 
 That's it!
 
