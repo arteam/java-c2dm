@@ -32,6 +32,7 @@ package com.notnoop.c2dm;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.notnoop.c2dm.domain.GCMPriority;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,7 @@ public class GCMNotificationBuilder {
     private String collapseKey;
     private boolean delayWhileIdle;
     private JsonObject data = new JsonObject();
+    private GCMPriority priority = GCMPriority.NORMAL;
 
     public GCMNotificationBuilder() {
     }
@@ -136,6 +138,17 @@ public class GCMNotificationBuilder {
         return this;
     }
 
+    /**
+     * Sets the message priority
+     *
+     * @param priority the message priority
+     * @return this
+     */
+    public GCMNotificationBuilder priority(GCMPriority priority) {
+        this.priority = priority;
+        return this;
+    }
+
     private void checkInitialization() {
         if (registrationIds == null) {
             throw new IllegalStateException("Registration id is required and missing");
@@ -147,7 +160,7 @@ public class GCMNotificationBuilder {
      */
     public GCMNotification build() {
         checkInitialization();
-        return new GCMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data);
+        return new GCMNotificationImpl(registrationIds, collapseKey, delayWhileIdle, data, priority.id());
     }
 
     public GCMNotificationBuilder data(JsonObject dataMap) {

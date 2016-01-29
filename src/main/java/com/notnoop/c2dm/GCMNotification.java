@@ -18,7 +18,7 @@ public interface GCMNotification {
 	 * GCM to group messages when the device is offline. Only the last message
 	 * of each group will be sent to the device when it comes online. However,
 	 * only a maximum of 4 notifications will be retained.
-	 * 
+	 *
 	 * @return the notification collapse key
 	 */
 	public String getCollapseKey();
@@ -26,20 +26,27 @@ public interface GCMNotification {
 	/**
 	 * Indicates whether the notification shall be delayed while the device is
 	 * idle. As soon as the device becomes active the notification will be sent.
-	 * 
+	 *
 	 * @return true when notification is delayed, false otherwise
 	 */
 	public boolean isDelayWhileIdle();
 
 	/**
 	 * Returns the payload data.
-	 * 
+	 *
 	 * Payload data, expressed as key-value pairs. If present, it will be
 	 * included in the Intent as application data, with the <key>. There is no
 	 * limit on the number of key/value pairs, though there is a limit on the
 	 * total size of the message.
-	 * 
+	 *
 	 * @return the payload key-value pairs
 	 */
 	public JsonObject getData();
+
+    /**
+     * Returns the message priority
+     *
+     * @return the priority as a string
+     */
+    public String getPriority();
 }

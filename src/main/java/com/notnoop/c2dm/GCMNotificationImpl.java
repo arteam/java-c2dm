@@ -53,14 +53,19 @@ public class GCMNotificationImpl implements GCMNotification {
     @SerializedName("data")
     private final JsonObject data;
 
+    @SerializedName("priority")
+    private final String priority;
+
     public GCMNotificationImpl(List<String> registrationIds,
                                String collapseKey,
                                boolean delayWhileIdle,
-                               JsonObject data) {
+                               JsonObject data,
+                               String priority) {
         this.registrationIds = registrationIds;
         this.collapseKey = collapseKey;
         this.delayWhileIdle = delayWhileIdle;
         this.data = data;
+        this.priority = priority;
     }
 
     @Override
@@ -83,6 +88,10 @@ public class GCMNotificationImpl implements GCMNotification {
         return data;
     }
 
+    public String getPriority() {
+        return priority;
+    }
+
     @Override
     public String toString() {
         return "GCMNotification{" +
@@ -90,6 +99,7 @@ public class GCMNotificationImpl implements GCMNotification {
                 ", collapseKey='" + collapseKey + '\'' +
                 ", delayWhileIdle=" + delayWhileIdle +
                 ", data=" + data +
+                ", priority=" + priority +
                 '}';
     }
 }
